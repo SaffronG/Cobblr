@@ -1,0 +1,204 @@
+// Cobblr LALRPOP Parser
+// =====================
+//
+// To generate parser:
+//   cargo install lalrpop
+//   lalrpop src/parser.lalrpop
+//
+// This file defines grammar rules for the Cobblr language.
+//
+// You’ll typically have:
+//   src/
+//     lexer.rs   (using Logos)
+//     parser.lalrpop
+//     ast.rs     (structs for expressions, statements, etc.)
+
+grammar;
+
+// ---------- Imports ----------
+use crate::ast::*;
+use crate::token::Token;
+
+// ---------- Root ----------
+Program: Program = {
+    Declarations => Program(<>)
+};
+
+Declarations: Vec<Decl> = {
+    Declaration+ => <>
+};
+
+Declaration: Decl = {
+    FunctionDecl => <> ,
+    ClassDecl => <> ,
+    LetDecl => <> ,
+    ImportDecl => <> ,
+    DeriveAttrClass => <>
+};
+
+// ---------- Imports ----------
+ImportDecl: Decl = {
+    "use" Path ";" => Decl::Import(Path(<>)),
+    "import" Path ";" => Decl::Import(Path(<>))
+};
+
+Path: Path = {
+    <id:Identifier> => Path::Single(id),
+    <path:Path> "::" <id:Identifier> => Path::Nested(Box::new(path), id)
+};
+
+// ---------- Attributes ----------
+DeriveAttrClass: Decl = {
+    "#derive" "(" IdentifierList ")" ClassDecl => Decl::DerivedClass(IdentifierList, Box::new(ClassDecl))
+};
+
+IdentifierList: Vec<String> = {
+    Identifier ++ ","
+};
+
+// ---------- Classes ----------
+ClassDecl: Decl = {
+    "class" Identifier "{" ClassBody "}" => Decl::Class(Identifier, ClassBody)
+};
+
+ClassBody: Vec<ClassMember> = {
+    <members:ClassMember*> => members
+};
+
+ClassMember: ClassMember = {
+    "prop" Identifier ":" TypeExpr ";" => ClassMember::Property(Identifier, TypeExpr),
+    FunctionDecl => ClassMember::Method(FunctionDecl)
+};
+
+// ---------- Functions ----------
+FunctionDecl: Decl = {
+    "fn" Identifier "(" ParamList ")" Block => Decl::Function(Identifier, ParamList, Block),
+    "async" "fn" Identifier "(" ParamList ")" Block => Decl::AsyncFunction(Identifier, ParamList, Block)
+};
+
+ParamList: Vec<String> = {
+    /* empty */ => vec![],
+    <params:Params> => params
+};
+
+Params: Vec<String> = {
+    Identifier ++ ","
+};
+
+// ---------- Blocks ----------
+Block: Block = {
+    "{" StatementList MaybeImplicitReturn "}" =>
+        Block { statements: StatementList, implicit_return: MaybeImplicitReturn }
+};
+
+StatementList: Vec<Stmt> = {
+    /* empty */ => vec![],
+    <list:StatementList> <stmt:Statement> => {
+        let mut out = list;
+        out.push(stmt);
+        out
+    }
+};
+
+Statement: Stmt = {
+    LetDecl => <> ,
+    Expression ";" => Stmt::Expr(<>),
+    "return" Expression ";" => Stmt::Return(<>)
+};
+
+MaybeImplicitReturn: Option<Expr> = {
+    /* empty */ => None,
+    Expression => Some(Expression)
+};
+
+// ---------- Let Declarations ----------
+LetDecl: Stmt = {
+    "let" MaybeMut Identifier MaybeType "=" Expression ";" =>
+        Stmt::Let { mutable: MaybeMut, name: Identifier, ty: MaybeType, value: Expression }
+};
+
+MaybeMut: bool = {
+    /* empty */ => false,
+    "mut" => true
+};
+
+MaybeType: Option<TypeExpr> = {
+    /* empty */ => None,
+    ":" TypeExpr => Some(TypeExpr)
+};
+
+// ---------- Expressions ----------
+Expression: Expr = {
+    Expression "|>" Expression => Expr::PipeForward(Box::new(<>), Box::new(<>)),
+    Expression "++" Expression => Expr::Append(Box::new(<>), Box::new(<>)),
+    Expression ":" Expression => Expr::Prepend(Box::new(<>), Box::new(<>)),
+    "[" ListItems "]" => Expr::List(<>),
+    FunctionCall => <> ,
+    Literal => <> ,
+    IdentifierRef => <> ,
+    GroupedExpr => <>
+};
+
+GroupedExpr: Expr = {
+    "(" Expression ")" => Expr::Grouped(Box::new(Expression))
+};
+
+IdentifierRef: Expr = {
+    Identifier => Expr::Identifier(Identifier),
+    Path => Expr::Path(Path)
+};
+
+Literal: Expr = {
+    Number => Expr::Number(Number),
+    StringLiteral => Expr::String(StringLiteral),
+    "true" => Expr::Bool(true),
+    "false" => Expr::Bool(false)
+};
+
+// ---------- Lists ----------
+ListItems: Vec<Expr> = {
+    /* empty */ => vec![],
+    <exprs:ExpressionList> => exprs
+};
+
+ExpressionList: Vec<Expr> = {
+    Expression ++ ",",
+    <list:ExpressionList> "," ".." Identifier => {
+        let mut exprs = list;
+        exprs.push(Expr::Spread(Identifier));
+        exprs
+    }
+};
+
+// ---------- Function Calls ----------
+FunctionCall: Expr = {
+    Identifier "(" ArgList ")" => Expr::Call(Identifier, ArgList)
+};
+
+ArgList: Vec<Expr> = {
+    /* empty */ => vec![],
+    <args:Args> => args
+};
+
+Args: Vec<Expr> = {
+    Expression ++ ","
+};
+
+// ---------- Types ----------
+TypeExpr: TypeExpr = {
+    Identifier => TypeExpr::Simple(Identifier),
+    Identifier "::" Identifier => TypeExpr::Scoped(Identifier, Identifier)
+};
+
+// ---------- Tokens ----------
+Identifier: String = {
+    <t:Token> => match t { Token::Identifier(s) => s, _ => panic!("Expected identifier") }
+};
+
+Number: f64 = {
+    <t:Token> => match t { Token::Number(n) => n, _ => panic!("Expected number") }
+};
+
+StringLiteral: String = {
+    <t:Token> => match t { Token::String(s) => s, _ => panic!("Expected string") }
+};
