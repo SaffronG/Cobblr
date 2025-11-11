@@ -3,16 +3,24 @@ pub struct Program(pub Vec<Decl>);
 
 #[derive(Debug, Clone)]
 pub enum Decl {
-    Function(String, Vec<String>, Block),
-    AsyncFunction(String, Vec<String>, Block),
+    Function(String, Vec<Param>, Option<TypeExpr>, Block),
+    AsyncFunction(String, Vec<Param>, Option<TypeExpr>, Block),
     Struct(String, Vec<StructMember>),
     Enum(String, Vec<(String, Option<Vec<TypeExpr>>)>),
     Trait(String, Vec<TraitMethod>),
     Impl(String, Vec<Decl>),
-    Let(String, Expr),
-    LetMut(String, Expr),
+    ImplTrait(String, String, Vec<Decl>),
+    Let(String, Option<TypeExpr>, Expr),
+    LetMut(String, Option<TypeExpr>, Expr),
     Import(Path),
     DerivedStruct(Vec<String>, Box<Decl>),
+}
+
+#[derive(Debug, Clone)]
+pub struct Param {
+    pub name: String,
+    pub ty: TypeExpr,
+    pub is_mut: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -23,7 +31,7 @@ pub struct StructMember {
 }
 
 impl StructMember {
-    pub fn Field(name: String, ty: TypeExpr) -> Self {
+    pub fn field(name: String, ty: TypeExpr) -> Self {
         StructMember {
             name,
             ty,
@@ -31,7 +39,7 @@ impl StructMember {
         }
     }
 
-    pub fn FieldInit(name: String, ty: TypeExpr, init: Expr) -> Self {
+    pub fn field_init(name: String, ty: TypeExpr, init: Expr) -> Self {
         StructMember {
             name,
             ty,
@@ -43,11 +51,11 @@ impl StructMember {
 #[derive(Debug, Clone)]
 pub struct TraitMethod {
     pub name: String,
-    pub params: Vec<String>,
+    pub params: Vec<Param>,
 }
 
 impl TraitMethod {
-    pub fn Sig(name: String, params: Vec<String>) -> Self {
+    pub fn sig(name: String, params: Vec<Param>) -> Self {
         TraitMethod { name, params }
     }
 }
@@ -65,6 +73,8 @@ pub enum Stmt {
     Return(Expr),
     If(IfStmt),
     While(Expr, Block),
+    Loop(Block),
+    Break,
     For(String, Expr, Block),
 }
 
@@ -79,16 +89,23 @@ pub struct IfStmt {
 pub enum Expr {
     Identifier(String),
     Number(Number),
+    String(String),
     Match {
         value: Box<Expr>,
         arms: Vec<MatchArm>,
     },
+    Call(String, Vec<Expr>),
+    AssocCall(String, String, Vec<Expr>),
+    MethodCall(Box<Expr>, String, Vec<Expr>),
+    StructLit(String, Vec<(String, Expr)>),
+    Closure(Vec<String>, Box<Expr>),
 
     // Binary operations
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
+    Concat(Box<Expr>, Box<Expr>),
 
     // Comparison
     Equal(Box<Expr>, Box<Expr>),
@@ -118,11 +135,13 @@ pub enum Pattern {
     Wildcard,
     Some(Box<Pattern>),
     None,
+    Variant(String, Box<Pattern>),
 }
 
 #[derive(Debug, Clone)]
 pub enum TypeExpr {
     Int64,
+    Int32,
     Float64,
     Bool,
     String,

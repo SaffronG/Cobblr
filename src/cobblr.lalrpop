@@ -1,13 +1,13 @@
+#![allow(clippy::all)]
+
 use crate::ast::*;
 
 grammar;
 
-// === PROGRAM ===
 pub Program: crate::ast::Program = {
     Declarations => crate::ast::Program(Declarations)
 };
 
-// === DECLARATIONS ===
 pub Declarations: Vec<crate::ast::Decl> = {
     => vec![],
     <ds:Declarations> <d:Declaration> => {
@@ -28,7 +28,6 @@ pub Declaration: crate::ast::Decl = {
     DeriveAttrStruct => DeriveAttrStruct
 };
 
-// === IMPORT ===
 pub ImportDecl: crate::ast::Decl = {
     "use" <path:Path> ";" => crate::ast::Decl::Import(path),
     "import" <path:Path> ";" => crate::ast::Decl::Import(path)
@@ -39,13 +38,11 @@ pub Path: crate::ast::Path = {
     <p:Path> "::" <id:Identifier> => crate::ast::Path::Nested(Box::new(p), id)
 };
 
-// === DERIVE ATTR STRUCT ===
 pub DeriveAttrStruct: crate::ast::Decl = {
     "#derive" "(" <ids:IdentifierList> ")" <s:StructDecl> =>
         crate::ast::Decl::DerivedStruct(ids, Box::new(s))
 };
 
-// === IDENTIFIERS ===
 pub IdentifierList: Vec<String> = {
     <id:Identifier> => vec![id],
     <ids:IdentifierList> "," <id:Identifier> => {
@@ -76,9 +73,9 @@ StructBody: Vec<crate::ast::StructMember> = {
 
 StructMember: crate::ast::StructMember = {
     <id:Identifier> ":" <ty:TypeExpr> ";" =>
-        crate::ast::StructMember::Field(id, ty),
+        crate::ast::StructMember::field(id, ty),
     <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" =>
-        crate::ast::StructMember::FieldInit(id, ty, e)
+        crate::ast::StructMember::field_init(id, ty, e)
 };
 
 // === ENUMS ===
@@ -118,13 +115,15 @@ TraitMethods: Vec<crate::ast::TraitMethod> = {
 
 TraitMethod: crate::ast::TraitMethod = {
     "fn" <id:Identifier> "(" <params:ParamList> ")" ";" =>
-        crate::ast::TraitMethod::Sig(id, params)
+        crate::ast::TraitMethod::sig(id, params)
 };
 
 // === IMPL ===
 ImplDecl: crate::ast::Decl = {
     "impl" <id:Identifier> "{" <body:ImplBody> "}" =>
-        crate::ast::Decl::Impl(id, body)
+        crate::ast::Decl::Impl(id, body),
+    "impl" <trait_name:Identifier> "for" <struct_name:Identifier> "{" <body:ImplBody> "}" =>
+        crate::ast::Decl::ImplTrait(trait_name, struct_name, body)
 };
 
 ImplBody: Vec<crate::ast::Decl> = {
@@ -136,31 +135,41 @@ ImplBody: Vec<crate::ast::Decl> = {
     }
 };
 
-// === FUNCTIONS ===
 pub FunctionDecl: crate::ast::Decl = {
     "fn" <id:Identifier> "(" <params:ParamList> ")" <body:Block> =>
-        crate::ast::Decl::Function(id, params, body),
+        crate::ast::Decl::Function(id, params, None, body),
+    "fn" <id:Identifier> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
+        crate::ast::Decl::Function(id, params, Some(ret_ty), body),
     "async" "fn" <id:Identifier> "(" <params:ParamList> ")" <body:Block> =>
-        crate::ast::Decl::AsyncFunction(id, params, body)
+        crate::ast::Decl::AsyncFunction(id, params, None, body),
+    "async" "fn" <id:Identifier> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
+        crate::ast::Decl::AsyncFunction(id, params, Some(ret_ty), body)
 };
 
-pub ParamList: Vec<String> = {
+pub ParamList: Vec<crate::ast::Param> = {
     => vec![],
-    <id:Identifier> => vec![id],
-    <ps:ParamList> "," <id:Identifier> => {
+    <p:Param> => vec![p],
+    <ps:ParamList> "," <p:Param> => {
         let mut v = ps;
-        v.push(id);
+        v.push(p);
         v
     }
 };
 
-// === LET DECL ===
-pub LetDecl: crate::ast::Decl = {
-    "let" <id:Identifier> "=" <e:Expr> ";" => crate::ast::Decl::Let(id, e),
-    "let" "mut" <id:Identifier> "=" <e:Expr> ";" => crate::ast::Decl::LetMut(id, e)
+Param: crate::ast::Param = {
+    <id:Identifier> ":" <ty:TypeExpr> =>
+        crate::ast::Param { name: id, ty, is_mut: false },
+    "&mut" <id:Identifier> ":" <ty:TypeExpr> =>
+        crate::ast::Param { name: id, ty, is_mut: true }
 };
 
-// === BLOCKS & STATEMENTS ===
+pub LetDecl: crate::ast::Decl = {
+    "let" <id:Identifier> "=" <e:Expr> ";" => crate::ast::Decl::Let(id, None, e),
+    "let" <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" => crate::ast::Decl::Let(id, Some(ty), e),
+    "let" "mut" <id:Identifier> "=" <e:Expr> ";" => crate::ast::Decl::LetMut(id, None, e),
+    "let" "mut" <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" => crate::ast::Decl::LetMut(id, Some(ty), e)
+};
+
 pub Block: crate::ast::Block = {
     "{" <stmts:StatementList> <ret:MaybeImplicitReturn> "}" =>
         crate::ast::Block { statements: stmts, implicit_return: ret }
@@ -181,10 +190,11 @@ pub Statement: crate::ast::Stmt = {
     "return" Expr ";" => crate::ast::Stmt::Return(Expr),
     IfStmt => crate::ast::Stmt::If(IfStmt),
     "while" Expr Block => crate::ast::Stmt::While(Expr, Block),
+    "loop" <b:Block> => crate::ast::Stmt::Loop(b),
+    "break" ";" => crate::ast::Stmt::Break,
     "for" <id:Identifier> "in" <e:Expr> <b:Block> => crate::ast::Stmt::For(id, e, b)
 };
 
-// === IF / ELSE ===
 IfStmt: crate::ast::IfStmt = {
     "if" <cond:Expr> <then:Block> => crate::ast::IfStmt { cond: Box::new(cond), then_branch: then, else_branch: None },
     "if" <cond:Expr> <then:Block> "else" <else_block:Block> => crate::ast::IfStmt { cond: Box::new(cond), then_branch: then, else_branch: Some(else_block) }
@@ -195,7 +205,6 @@ pub MaybeImplicitReturn: Option<Expr> = {
     <e:Expr> => Some(e)
 };
 
-// === MATCH ===
 MatchExpr: crate::ast::Expr = {
     "match" <value:Expr> "{" <arms:MatchArms> "}" =>
         crate::ast::Expr::Match { value: Box::new(value), arms }
@@ -219,13 +228,14 @@ Pattern: crate::ast::Pattern = {
     NumberInt => crate::ast::Pattern::Number(NumberInt),
     NumberFloat => crate::ast::Pattern::Number(NumberFloat),
     "_" => crate::ast::Pattern::Wildcard,
-    "Some" "(" Pattern ")" => crate::ast::Pattern::Some(Box::new(Pattern)),
-    "None" => crate::ast::Pattern::None
+    "Some" "(" <p:Pattern> ")" => crate::ast::Pattern::Some(Box::new(p)),
+    "None" => crate::ast::Pattern::None,
+    <variant:Identifier> "(" <p:Pattern> ")" => crate::ast::Pattern::Variant(variant, Box::new(p))
 };
 
-// === TYPE EXPRESSIONS ===
 pub TypeExpr: crate::ast::TypeExpr = {
     "i64" => crate::ast::TypeExpr::Int64,
+    "i32" => crate::ast::TypeExpr::Int32,
     "f64" => crate::ast::TypeExpr::Float64,
     "bool" => crate::ast::TypeExpr::Bool,
     "string" => crate::ast::TypeExpr::String,
@@ -239,7 +249,6 @@ TypeList: Vec<crate::ast::TypeExpr> = {
     <ts:TypeList> "," <t:TypeExpr> => { let mut v = ts; v.push(t); v }
 };
 
-// === NUMBERS ===
 NumberInt: crate::ast::Number::Int = {
     <n:r"-?[0-9]+"> => crate::ast::Number::Int(n.parse().unwrap())
 };
@@ -249,39 +258,86 @@ NumberFloat: crate::ast::Number::Float = {
 };
 
 String: String = {
-    <s: r#""([^"\\]|\\.)*""#> => s.to_string()
+    <s: r#""([^"\\]|\\.)*""#> => s[1..s.len()-1].to_string()
 };
 
-// === ARGUMENT LISTS ===
 ArgList: Vec<crate::ast::Expr> = {
     => vec![],
     <e:Expr> => vec![e],
     <args:ArgList> "," <e:Expr> => { let mut v = args; v.push(e); v }
 };
 
+StructLiteral: (String, Vec<(String, Expr)>) = {
+    <name:Identifier> "{" <fields:FieldList> "}" => (name, fields)
+};
+
+FieldList: Vec<(String, Expr)> = {
+    => vec![],
+    <field:FieldInit> => vec![field],
+    <fields:FieldList> "," <field:FieldInit> => { let mut v = fields; v.push(field); v }
+};
+
+FieldInit: (String, Expr) = {
+    <id:Identifier> ":" <e:Expr> => (id, e)
+};
+
+Closure: crate::ast::Expr = {
+    "|" <params:ParamNames> "|" <e:Expr> =>
+        crate::ast::Expr::Closure(params, Box::new(e))
+};
+
+ParamNames: Vec<String> = {
+    => vec![],
+    <id:Identifier> => vec![id],
+    <ps:ParamNames> "," <id:Identifier> => { let mut v = ps; v.push(id); v }
+};
+
 pub Expr: crate::ast::Expr = {
     #[precedence(level="1")]
     NumberInt => crate::ast::Expr::Number(NumberInt),
     NumberFloat => crate::ast::Expr::Number(NumberFloat),
+    String => crate::ast::Expr::String(String),
     Identifier => crate::ast::Expr::Identifier(Identifier),
     
-    "(" Expr ")" => Expr,
+    #[precedence(level="1")]
+    Closure => Closure,
+    
+    #[precedence(level="2")]
+    "(" <e:Expr> ")" => e,
+    
+    #[precedence(level="2")]
+    <lit:StructLiteral> => {
+        let (name, fields) = lit;
+        crate::ast::Expr::StructLit(name, fields)
+    },
+    
+    #[precedence(level="2")]
+    <id:Identifier> "::" <method:Identifier> "(" <args:ArgList> ")" =>
+        crate::ast::Expr::AssocCall(id, method, args),
+    
+    #[precedence(level="2")]
+    <id:Identifier> "(" <args:ArgList> ")" => crate::ast::Expr::Call(id, args),
+    
+    #[precedence(level="2")]
+    <obj:Expr> "." <method:Identifier> "(" <args:ArgList> ")" =>
+        crate::ast::Expr::MethodCall(Box::new(obj), method, args),
     
     #[precedence(level="3")] #[assoc(side="left")]
-    Expr "*" Expr => crate::ast::Expr::Mul(Box::new(Expr), Box::new(Expr2)),
-    Expr "/" Expr => crate::ast::Expr::Div(Box::new(Expr), Box::new(Expr2)),
+    <l:Expr> "*" <r:Expr> => crate::ast::Expr::Mul(Box::new(l), Box::new(r)),
+    <l:Expr> "/" <r:Expr> => crate::ast::Expr::Div(Box::new(l), Box::new(r)),
 
     #[precedence(level="4")] #[assoc(side="left")]
-    Expr "+" Expr => crate::ast::Expr::Add(Box::new(Expr), Box::new(Expr2)),
-    Expr "-" Expr => crate::ast::Expr::Sub(Box::new(Expr), Box::new(Expr2)),
+    <l:Expr> "+" <r:Expr> => crate::ast::Expr::Add(Box::new(l), Box::new(r)),
+    <l:Expr> "-" <r:Expr> => crate::ast::Expr::Sub(Box::new(l), Box::new(r)),
+    <l:Expr> "++" <r:Expr> => crate::ast::Expr::Concat(Box::new(l), Box::new(r)),
 
     #[precedence(level="5")] #[assoc(side="none")]
-    Expr "==" Expr => crate::ast::Expr::Equal(Box::new(Expr), Box::new(Expr2)),
-    Expr "!=" Expr => crate::ast::Expr::NotEqual(Box::new(Expr), Box::new(Expr2)),
-    Expr "<" Expr => crate::ast::Expr::Less(Box::new(Expr), Box::new(Expr2)),
-    Expr "<=" Expr => crate::ast::Expr::LessEq(Box::new(Expr), Box::new(Expr2)),
-    Expr ">" Expr => crate::ast::Expr::Greater(Box::new(Expr), Box::new(Expr2)),
-    Expr ">=" Expr => crate::ast::Expr::GreaterEq(Box::new(Expr), Box::new(Expr2)),
+    <l:Expr> "==" <r:Expr> => crate::ast::Expr::Equal(Box::new(l), Box::new(r)),
+    <l:Expr> "!=" <r:Expr> => crate::ast::Expr::NotEqual(Box::new(l), Box::new(r)),
+    <l:Expr> "<" <r:Expr> => crate::ast::Expr::Less(Box::new(l), Box::new(r)),
+    <l:Expr> "<=" <r:Expr> => crate::ast::Expr::LessEq(Box::new(l), Box::new(r)),
+    <l:Expr> ">" <r:Expr> => crate::ast::Expr::Greater(Box::new(l), Box::new(r)),
+    <l:Expr> ">=" <r:Expr> => crate::ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
 
     MatchExpr => MatchExpr
 };

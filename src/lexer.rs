@@ -30,7 +30,31 @@ pub enum Token<'input> {
     Identifier(&'input str),
 
     // ----------------------
-    // Operators
+    // Multi-char Operators (must come before single-char)
+    // ----------------------
+    #[token("==")]
+    EqEq,
+
+    #[token("!=")]
+    NotEq,
+
+    #[token("++")]
+    PlusPlus,
+
+    #[token("<=")]
+    LtEq,
+
+    #[token(">=")]
+    GtEq,
+
+    #[token("->")]
+    Arrow,
+
+    #[token("::")]
+    ColonColon,
+
+    // ----------------------
+    // Single-char Operators
     // ----------------------
     #[token("+")]
     Plus,
@@ -44,23 +68,29 @@ pub enum Token<'input> {
     #[token("/")]
     Slash,
 
-    #[token("==")]
-    EqEq,
-
-    #[token("!=")]
-    NotEq,
-
     #[token("<")]
     Lt,
 
     #[token(">")]
     Gt,
 
-    #[token("++")]
-    PlusPlus,
-
     #[token("!")]
     Bang,
+
+    #[token(".")]
+    Dot,
+
+    #[token("|")]
+    Pipe,
+
+    #[token("&")]
+    Ampersand,
+
+    #[token("_")]
+    Underscore,
+
+    #[token("=")]
+    Eq,
 
     // ----------------------
     // Delimiters
@@ -82,12 +112,6 @@ pub enum Token<'input> {
 
     #[token(",")]
     Comma,
-
-    #[token("::")]
-    ColonColon,
-
-    #[token("=")]
-    Eq,
 
     // ----------------------
     // Keywords
@@ -151,4 +175,25 @@ pub enum Token<'input> {
 
     #[token("false")]
     False,
+
+    #[token("trait")]
+    Trait,
+
+    #[token("enum")]
+    Enum,
+
+    #[token("use")]
+    Use,
+
+    #[token("import")]
+    Import,
+
+    #[token("if")]
+    If,
+
+    #[token("else")]
+    Else,
+
+    #[token("in")]
+    In,
 }
