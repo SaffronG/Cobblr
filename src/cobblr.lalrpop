@@ -2,6 +2,7 @@ use crate::ast::*;
 
 grammar;
 
+// ==================== PROGRAM & DECLARATIONS ====================
 pub Program: crate::ast::Program = {
     Declarations => crate::ast::Program(Declarations)
 };
@@ -26,6 +27,7 @@ pub Declaration: crate::ast::Decl = {
     DeriveAttrStruct => DeriveAttrStruct
 };
 
+// ==================== IMPORT ====================
 pub ImportDecl: crate::ast::Decl = {
     "use" <path:Path> ";" => crate::ast::Decl::Import(path),
     "import" <path:Path> ";" => crate::ast::Decl::Import(path)
@@ -36,6 +38,7 @@ pub Path: crate::ast::Path = {
     <p:Path> "::" <id:Identifier> => crate::ast::Path::Nested(Box::new(p), id)
 };
 
+// ==================== DERIVE STRUCT ====================
 pub DeriveAttrStruct: crate::ast::Decl = {
     "#derive" "(" <ids:IdentifierList> ")" <s:StructDecl> =>
         crate::ast::Decl::DerivedStruct(ids, Box::new(s))
@@ -51,14 +54,10 @@ pub IdentifierList: Vec<String> = {
 };
 
 Identifier: String = {
-    <id:r"[a-zA-Z_][a-zA-Z0-9_]*"> => id.to_string()
+    <id: r"[a-zA-Z_][a-zA-Z0-9_]*"> => id.to_string()
 };
 
-// add a TypeIdentifier (starts with uppercase) to disambiguate type/struct names
-TypeIdentifier: String = {
-    <id:r"[A-Z][a-zA-Z0-9_]*"> => id.to_string()
-};
-
+// ==================== STRUCT ====================
 pub StructDecl: crate::ast::Decl = {
     "struct" <id:Identifier> "{" <members:StructBody> "}" =>
         crate::ast::Decl::Struct(id, members)
@@ -80,7 +79,7 @@ StructMember: crate::ast::StructMember = {
         crate::ast::StructMember::field_init(id, ty, e)
 };
 
-// === ENUMS ===
+// ==================== ENUM ====================
 EnumDecl: crate::ast::Decl = {
     "enum" <id:Identifier> "{" <variants:EnumVariants> "}" =>
         crate::ast::Decl::Enum(id, variants)
@@ -100,7 +99,7 @@ EnumVariant: (String, Option<Vec<TypeExpr>>) = {
     <id:Identifier> "(" <types:TypeList> ")" ","? => (id, Some(types))
 };
 
-// === TRAITS ===
+// ==================== TRAIT ====================
 TraitDecl: crate::ast::Decl = {
     "trait" <id:Identifier> "{" <methods:TraitMethods> "}" =>
         crate::ast::Decl::Trait(id, methods)
@@ -120,7 +119,7 @@ TraitMethod: crate::ast::TraitMethod = {
         crate::ast::TraitMethod::sig(id, params)
 };
 
-// === IMPL ===
+// ==================== IMPL ====================
 ImplDecl: crate::ast::Decl = {
     "impl" <id:Identifier> "{" <body:ImplBody> "}" =>
         crate::ast::Decl::Impl(id, body),
@@ -137,6 +136,7 @@ ImplBody: Vec<crate::ast::Decl> = {
     }
 };
 
+// ==================== FUNCTIONS ====================
 pub FunctionDecl: crate::ast::Decl = {
     "fn" <id:Identifier> "(" <params:ParamList> ")" <body:Block> =>
         crate::ast::Decl::Function(id, params, None, body),
@@ -165,6 +165,7 @@ Param: crate::ast::Param = {
         crate::ast::Param { name: id, ty, is_mut: true }
 };
 
+// ==================== LET DECLARATIONS ====================
 pub LetDecl: crate::ast::Decl = {
     "let" <id:Identifier> "=" <e:Expr> ";" => crate::ast::Decl::Let(id, None, e),
     "let" <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" => crate::ast::Decl::Let(id, Some(ty), e),
@@ -172,6 +173,7 @@ pub LetDecl: crate::ast::Decl = {
     "let" "mut" <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" => crate::ast::Decl::LetMut(id, Some(ty), e)
 };
 
+// ==================== BLOCKS & STATEMENTS ====================
 pub Block: crate::ast::Block = {
     "{" <stmts:StatementList> <ret:MaybeImplicitReturn> "}" =>
         crate::ast::Block { statements: stmts, implicit_return: ret }
@@ -207,6 +209,7 @@ pub MaybeImplicitReturn: Option<Expr> = {
     <e:Expr> => Some(e)
 };
 
+// ==================== MATCH EXPRESSIONS ====================
 MatchExpr: crate::ast::Expr = {
     "match" <value:Expr> "{" <arms:MatchArms> "}" =>
         crate::ast::Expr::Match { value: Box::new(value), arms }
@@ -235,6 +238,7 @@ Pattern: crate::ast::Pattern = {
     <variant:Identifier> "(" <p:Pattern> ")" => crate::ast::Pattern::Variant(variant, Box::new(p))
 };
 
+// ==================== TYPES ====================
 pub TypeExpr: crate::ast::TypeExpr = {
     "i64" => crate::ast::TypeExpr::Int64,
     "i32" => crate::ast::TypeExpr::Int32,
@@ -251,6 +255,7 @@ TypeList: Vec<crate::ast::TypeExpr> = {
     <ts:TypeList> "," <t:TypeExpr> => { let mut v = ts; v.push(t); v }
 };
 
+// ==================== LITERALS ====================
 NumberInt: crate::ast::Number::Int = {
     <n:r"-?[0-9]+"> => crate::ast::Number::Int(n.parse().unwrap())
 };
@@ -263,6 +268,7 @@ String: String = {
     <s: r#""([^"\\]|\\.)*""#> => s[1..s.len()-1].to_string()
 };
 
+// ==================== FUNCTION ARGS & STRUCT LITERALS ====================
 ArgList: Vec<crate::ast::Expr> = {
     => vec![],
     <e:Expr> => vec![e],
@@ -270,19 +276,20 @@ ArgList: Vec<crate::ast::Expr> = {
 };
 
 StructLiteral: (String, Vec<(String, Expr)>) = {
-    <name:TypeIdentifier> "{" <fields:FieldList> "}" => (name, fields)
+    <name:Identifier> "{" <fields:FieldList> "}" => (name, fields)
 };
 
 FieldList: Vec<(String, Expr)> = {
     => vec![],
     <field:FieldInit> => vec![field],
-    <fields:FieldList> "," <field:FieldInit> => { let mut v = fields; v.push(field); v }
+    <fields:FieldList> "," <field:FieldInit> => { let mut v = fields; v.push(field); }
 };
 
 FieldInit: (String, Expr) = {
     <id:Identifier> ":" <e:Expr> => (id, e)
 };
 
+// ==================== CLOSURES ====================
 Closure: crate::ast::Expr = {
     "|" <params:ParamNames> "|" <e:Expr> =>
         crate::ast::Expr::Closure(params, Box::new(e))
@@ -291,69 +298,67 @@ Closure: crate::ast::Expr = {
 ParamNames: Vec<String> = {
     => vec![],
     <id:Identifier> => vec![id],
-    <ps:ParamNames> "," <id:Identifier> => { let mut v = ps; v.push(id); v }
+    <ps:ParamNames> "," <id:Identifier> => { let mut v = ps; v.push(id); }
 };
 
-// PRIMARY: atoms (numbers, strings, parenthesis, closures, match, struct literal)
-// NOTE: Identifier removed here to avoid reducing it before seeing "(" / "::" / "{" / "."
+// ==================== EXPRESSIONS ====================
+// PRIMARY -> POSTFIX -> EXPR (with operators)
 Primary: crate::ast::Expr = {
     NumberInt => crate::ast::Expr::Number(NumberInt),
     NumberFloat => crate::ast::Expr::Number(NumberFloat),
     String => crate::ast::Expr::String(String),
-
     "(" <e:Expr> ")" => e,
-
     Closure => Closure,
-
     MatchExpr => MatchExpr,
-
     <lit:StructLiteral> => {
         let (name, fields) = lit;
         crate::ast::Expr::StructLit(name, fields)
-    }
+    },
+    Identifier => crate::ast::Expr::Identifier(Identifier)
 };
 
-// POSTFIX: left-recursive to handle method chaining and restrict plain calls to Identifier starts,
-// and assoc calls to TypeIdentifier::method(...)
+// === Base operand: primary expressions with postfix handling ===
 Postfix: crate::ast::Expr = {
-    // start from a primary atom
     <p:Primary> => p,
 
-    // method call chaining: obj.method(args)
+    // method call: obj.method(args)
     <obj:Postfix> "." <method:Identifier> "(" <args:ArgList> ")" =>
         crate::ast::Expr::MethodCall(Box::new(obj), method, args),
 
-    // associated (type) call like Type::method(...)
-    <t:TypeIdentifier> "::" <method:Identifier> "(" <args:ArgList> ")" =>
+    // associated call: Type::method(args)
+    <t:Identifier> "::" <method:Identifier> "(" <args:ArgList> ")" =>
         crate::ast::Expr::AssocCall(t, method, args),
 
-    // plain function call only when starting with an Identifier token
-    // kept after assoc/method rules so a following "(" or "::" will be shifted into the call/assoc productions
+    // plain function call
     <id:Identifier> "(" <args:ArgList> ")" => crate::ast::Expr::Call(id, args),
 
-    // fallback: bare identifier as variable (only reduced when no postfix follows)
+    // bare identifier fallback
     <id:Identifier> => crate::ast::Expr::Identifier(id)
 };
 
-// Use Postfix as base operand for operators (preserve precedence)
+// === Expression with operators, using proper precedence levels ===
 pub Expr: crate::ast::Expr = {
-    #[precedence(level="3")] #[assoc(side="left")]
+
+    // Level 1: Multiplication / Division
+    #[precedence(level="1")]
     <l:Expr> "*" <r:Postfix> => crate::ast::Expr::Mul(Box::new(l), Box::new(r)),
     <l:Expr> "/" <r:Postfix> => crate::ast::Expr::Div(Box::new(l), Box::new(r)),
 
-    #[precedence(level="4")] #[assoc(side="left")]
+    // Level 2: Addition / Subtraction / Concatenation (left-associative)
+    #[precedence(level="2")] #[assoc(side="left")]
     <l:Expr> "+" <r:Expr> => crate::ast::Expr::Add(Box::new(l), Box::new(r)),
     <l:Expr> "-" <r:Expr> => crate::ast::Expr::Sub(Box::new(l), Box::new(r)),
     <l:Expr> "++" <r:Expr> => crate::ast::Expr::Concat(Box::new(l), Box::new(r)),
 
-    #[precedence(level="5")] #[assoc(side="none")]
+    // Level 3: Comparisons (non-associative)
+    #[precedence(level="3")] #[assoc(side="none")]
     <l:Expr> "==" <r:Expr> => crate::ast::Expr::Equal(Box::new(l), Box::new(r)),
     <l:Expr> "!=" <r:Expr> => crate::ast::Expr::NotEqual(Box::new(l), Box::new(r)),
-    <l:Expr> "<" <r:Expr> => crate::ast::Expr::Less(Box::new(l), Box::new(r)),
+    <l:Expr> "<"  <r:Expr> => crate::ast::Expr::Less(Box::new(l), Box::new(r)),
     <l:Expr> "<=" <r:Expr> => crate::ast::Expr::LessEq(Box::new(l), Box::new(r)),
-    <l:Expr> ">" <r:Expr> => crate::ast::Expr::Greater(Box::new(l), Box::new(r)),
+    <l:Expr> ">"  <r:Expr> => crate::ast::Expr::Greater(Box::new(l), Box::new(r)),
     <l:Expr> ">=" <r:Expr> => crate::ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
 
-    // base case: a Postfix expression (primary possibly with postfix ops)
+    // Level 0: base case (Postfix expressions)
     Postfix => Postfix
 };
