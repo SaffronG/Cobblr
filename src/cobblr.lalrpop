@@ -294,12 +294,12 @@ ParamNames: Vec<String> = {
     <ps:ParamNames> "," <id:Identifier> => { let mut v = ps; v.push(id); v }
 };
 
-// PRIMARY: atoms (numbers, strings, id, parenthesis, closures, match, struct literal)
+// PRIMARY: atoms (numbers, strings, parenthesis, closures, match, struct literal)
+// NOTE: Identifier removed here to avoid reducing it before seeing "(" / "::" / "{" / "."
 Primary: crate::ast::Expr = {
     NumberInt => crate::ast::Expr::Number(NumberInt),
     NumberFloat => crate::ast::Expr::Number(NumberFloat),
     String => crate::ast::Expr::String(String),
-    Identifier => crate::ast::Expr::Identifier(Identifier),
 
     "(" <e:Expr> ")" => e,
 
@@ -323,12 +323,16 @@ Postfix: crate::ast::Expr = {
     <obj:Postfix> "." <method:Identifier> "(" <args:ArgList> ")" =>
         crate::ast::Expr::MethodCall(Box::new(obj), method, args),
 
-    // plain function call only when starting with an Identifier token
-    <id:Identifier> "(" <args:ArgList> ")" => crate::ast::Expr::Call(id, args),
-
     // associated (type) call like Type::method(...)
     <t:TypeIdentifier> "::" <method:Identifier> "(" <args:ArgList> ")" =>
-        crate::ast::Expr::AssocCall(t, method, args)
+        crate::ast::Expr::AssocCall(t, method, args),
+
+    // plain function call only when starting with an Identifier token
+    // kept after assoc/method rules so a following "(" or "::" will be shifted into the call/assoc productions
+    <id:Identifier> "(" <args:ArgList> ")" => crate::ast::Expr::Call(id, args),
+
+    // fallback: bare identifier as variable (only reduced when no postfix follows)
+    <id:Identifier> => crate::ast::Expr::Identifier(id)
 };
 
 // Use Postfix as base operand for operators (preserve precedence)
