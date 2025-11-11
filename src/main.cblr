@@ -1,0 +1,104 @@
+// ---------- Imports ----------
+use std::io;
+use math::range;
+
+// ---------- Structs ----------
+#derive(Debug, Clone)
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+struct Rectangle {
+    width: f64 = 10.0,
+    height: f64 = 20.0,
+}
+
+// ---------- Implementations ----------
+impl Point {
+    fn new(x: f64, y: f64) -> Point {
+        Point { x, y }
+    }
+
+    fn translate(&mut self, dx: f64, dy: f64) {
+        self.x += dx;
+        self.y += dy;
+    }
+}
+
+impl Rectangle {
+    fn area(&self) -> f64 {
+        self.width * self.height
+    }
+}
+
+// ---------- Functions ----------
+async fn fetch_data(url: String) -> Result<String, String> {
+    // pretend to fetch
+    if url == "ok" {
+        Ok("data".into())
+    } else {
+        Err("failed".into())
+    }
+}
+
+fn map_example(nums: Vec<i32>) -> Vec<i32> {
+    nums.map(|n| n * 2)
+}
+
+fn filter_example(nums: Vec<i32>) -> Vec<i32> {
+    nums.filter(|n| n % 2 == 0)
+}
+
+// ---------- Main Program ----------
+fn main() {
+    // Variables
+    let mut counter: i32 = 0;
+    let points: Vec<Point> = vec![
+        Point::new(1.0, 2.0),
+        Point::new(3.0, 4.0),
+    ];
+
+    // Loops
+    while counter < 5 {
+        counter++;
+    }
+
+    loop {
+        break;
+    }
+
+    for i in 0..10 {
+        counter += i;
+    }
+
+    // Match expressions
+    let response: Result<String, String> = fetch_data("ok".into());
+    match response {
+        Ok(data) => {
+            println("Fetched: " ++ data);
+        },
+        Err(err) => {
+            println("Error: " ++ err);
+        }
+    }
+
+    let maybe_value: Option<i32> = Some(42);
+    match maybe_value {
+        Some(val) => println("Value: " ++ val),
+        None => println("No value"),
+    }
+
+    // Map/Filter
+    let numbers: Vec<i32> = vec![1,2,3,4,5];
+    let doubled = map_example(numbers);
+    let evens = filter_example(doubled);
+
+    // Struct usage
+    let mut rect = Rectangle { width: 15.0, height: 25.0 };
+    println("Area: " ++ rect.area());
+
+    let mut p = Point::new(10.0, 20.0);
+    p.translate(5.0, -3.0);
+    println("Point: " ++ p.x ++ ", " ++ p.y);
+}

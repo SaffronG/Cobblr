@@ -1,6 +1,12 @@
 [package]
 name = "Cobblr"
 version = "0.1.0"
+authors = ["Kenneth C. Harmer <https://github.com/SaffronG>"]
 edition = "2024"
 
+[build-dependencies]
+lalrpop = "0.22.2"
+
 [dependencies]
+logos = "0.15.1"
+lalrpop-util = { version = "0.21.0", features = ["lexer", "unicode"] }

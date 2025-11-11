@@ -1,101 +1,55 @@
+// src/token.rs
 use logos::Logos;
 
 #[derive(Logos, Debug, PartialEq, Clone)]
 pub enum Token {
-    /* ---------- Keywords ---------- */
-    #[token("let")]
-    Let,
-    #[token("mut")]
-    Mut,
+    // Keywords
     #[token("fn")]
     Fn,
-    #[token("if")]
-    If,
-    #[token("else")]
-    Else,
-    #[token("match")]
-    Match,
+    #[token("struct")]
+    Struct,
+    #[token("impl")]
+    Impl,
     #[token("for")]
     For,
     #[token("while")]
     While,
     #[token("loop")]
     Loop,
+    #[token("break")]
+    Break,
+    #[token("continue")]
+    Continue,
     #[token("return")]
     Return,
-    #[token("async")]
-    Async,
-    #[token("await")]
-    Await,
-    #[token("class")]
-    Class,
-    #[token("struct")]
-    Struct,
-    #[token("trait")]
-    Trait,
-    #[token("impl")]
-    Impl,
-    #[token("enum")]
-    Enum,
+    #[token("match")]
+    Match,
+    #[token("Some")]
+    Some,
+    #[token("None")]
+    None,
+    #[token("Ok")]
+    Ok,
+    #[token("Err")]
+    Err,
     #[token("use")]
     Use,
     #[token("import")]
     Import,
-    #[token("true")]
-    True,
-    #[token("false")]
-    False,
-
-    /* ---------- Derive & Attributes ---------- */
     #[token("#derive")]
     Derive,
-    #[token("#")]
-    Hash,
 
-    /* ---------- Identifiers & Literals ---------- */
-    #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", |lex| lex.slice().to_string())]
-    Identifier(String),
-
-    #[regex(r"[0-9]+(\.[0-9]+)?", |lex| lex.slice().parse())]
-    Number(f64),
-
-    #[regex(r#""([^"\\]|\\.)*""#, |lex| {
-        let slice = lex.slice();
-        slice[1..slice.len()-1].to_string()
-    })]
-    String(String),
-
-    /* ---------- Operators ---------- */
-    #[token("<")]
-    Less,
-    #[token(">")]
-    Greater,
-    #[token("<=")]
-    LessEq,
-    #[token(">=")]
-    GreaterEq,
-    #[token("==")]
-    EqEq,
-    #[token("!=")]
-    NotEq,
-    #[token("=")]
-    Eq,
-    #[token("->")]
-    Arrow,
-    #[token("=>")]
-    FatArrow,
+    // Symbols
     #[token("::")]
-    ColonColon,
+    DoubleColon,
+    #[token(";")]
+    Semi,
+    #[token(",")]
+    Comma,
     #[token(":")]
     Colon,
-    #[token("|>")]
-    PipeFwd,
-    #[token("|")]
-    Pipe,
-    #[token("++")]
-    Append,
-    #[token("..")]
-    Spread,
+    #[token("=")]
+    Equals,
     #[token("+")]
     Plus,
     #[token("-")]
@@ -104,28 +58,22 @@ pub enum Token {
     Star,
     #[token("/")]
     Slash,
-    #[token("`")]
-    Tick,
-    #[token("~")]
-    Tilde,
-    #[token("%")]
-    Modulo,
-    #[token("@")]
-    At,
-
-    /* ---------- Binary Operators ---------- */
-    #[token("&")]
-    And,
-    #[token("!&")]
-    Nand,
-    #[token("!|")]
-    Nor,
-    #[token("^")]
-    Xor,
-    #[token("!")]
-    Not,
-
-    /* ---------- Punctuation ---------- */
+    #[token("++")]
+    PlusPlus,
+    #[token("|>")]
+    PipeForward,
+    #[token("&&")]
+    AndAnd,
+    #[token("||")]
+    OrOr,
+    #[token("==")]
+    EqualEqual,
+    #[token("!=")]
+    NotEqual,
+    #[token("<")]
+    Less,
+    #[token(">")]
+    Greater,
     #[token("(")]
     LParen,
     #[token(")")]
@@ -134,28 +82,19 @@ pub enum Token {
     LBrace,
     #[token("}")]
     RBrace,
-    #[token("[")]
-    LBracket,
-    #[token("]")]
-    RBracket,
-    #[token(";")]
-    Semicolon,
-    #[token(",")]
-    Comma,
-    #[token(".")]
-    Dot,
 
-    /* ---------- Attributes ---------- */
-    #[regex(r"#\[[^\]]*\]")]
-    Attribute,
+    // Literals
+    #[regex(r"[0-9]+\.[0-9]+")]
+    Float(f64),
+    #[regex(r"[0-9]+")]
+    Int(i64),
+    #[regex(r#""([^"\\]|\\.)*""#)]
+    Str(String),
+    #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*")]
+    Identifier(String),
 
-    /* ---------- Comments ---------- */
-    #[regex(r"//[^\n]*", logos::skip)] // skip single-line comments
-    #[regex(r"/\*([^*]|\*+[^*/])*\*/", logos::skip)] // skip block comments
-
-    /* ---------- Whitespace ---------- */
-    #[regex(r"[ \t\r\n\f]+", logos::skip)]
-    /* ---------- Unknown ---------- */
+    // Logos requires this for errors
     #[error]
+    #[regex(r"[ \t\n\f]+", logos::skip)]
     Error,
 }

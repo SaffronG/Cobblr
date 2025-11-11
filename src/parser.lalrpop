@@ -1,23 +1,9 @@
-// Cobblr LALRPOP Parser
-// =====================
-//
-// To generate parser:
-//   cargo install lalrpop
-//   lalrpop src/parser.lalrpop
-//
-// This file defines grammar rules for the Cobblr language.
-//
-// You’ll typically have:
-//   src/
-//     lexer.rs   (using Logos)
-//     parser.lalrpop
-//     ast.rs     (structs for expressions, statements, etc.)
-
-grammar;
-
-// ---------- Imports ----------
+// parser.lalrpop
 use crate::ast::*;
 use crate::token::Token;
+
+// Tell LALRPOP that our input type is your lexer’s Token
+pub type Tok = Token;
 
 // ---------- Root ----------
 Program: Program = {
@@ -30,16 +16,16 @@ Declarations: Vec<Decl> = {
 
 Declaration: Decl = {
     FunctionDecl => <> ,
-    ClassDecl => <> ,
+    StructDecl => <> ,
     LetDecl => <> ,
     ImportDecl => <> ,
-    DeriveAttrClass => <>
+    DeriveAttrStruct => <>
 };
 
 // ---------- Imports ----------
 ImportDecl: Decl = {
-    "use" Path ";" => Decl::Import(Path(<>)),
-    "import" Path ";" => Decl::Import(Path(<>))
+    Token::KeywordUse Path ";" => Decl::Import(Path(<>)),
+    Token::KeywordImport Path ";" => Decl::Import(Path(<>))
 };
 
 Path: Path = {
@@ -48,32 +34,51 @@ Path: Path = {
 };
 
 // ---------- Attributes ----------
-DeriveAttrClass: Decl = {
-    "#derive" "(" IdentifierList ")" ClassDecl => Decl::DerivedClass(IdentifierList, Box::new(ClassDecl))
+DeriveAttrStruct: Decl = {
+    Token::KeywordDerive "(" IdentifierList ")" StructDecl =>
+        Decl::DerivedStruct(IdentifierList, Box::new(StructDecl))
 };
 
 IdentifierList: Vec<String> = {
     Identifier ++ ","
 };
 
-// ---------- Classes ----------
-ClassDecl: Decl = {
-    "class" Identifier "{" ClassBody "}" => Decl::Class(Identifier, ClassBody)
+// ---------- Structs ----------
+StructDecl: Decl = {
+    Token::KeywordStruct Identifier "{" StructBody "}" => Decl::Struct(Identifier, StructBody)
 };
 
-ClassBody: Vec<ClassMember> = {
-    <members:ClassMember*> => members
+StructBody: Vec<StructMember> = {
+    <members:StructMember*> => members
 };
 
-ClassMember: ClassMember = {
-    "prop" Identifier ":" TypeExpr ";" => ClassMember::Property(Identifier, TypeExpr),
-    FunctionDecl => ClassMember::Method(FunctionDecl)
+StructMember: StructMember = {
+    Identifier ":" TypeExpr ";" => StructMember::Field(Identifier, TypeExpr),
+    Identifier ":" TypeExpr "=" Expr ";" => StructMember::FieldDefault(Identifier, TypeExpr, Expr),
+    FunctionDecl => StructMember::Method(FunctionDecl)
+};
+
+// ---------- Implementations ----------
+ImplDecl: Decl = {
+    Token::KeywordImpl Identifier "{" ImplBody "}" => Decl::Impl { target: Identifier, items: ImplBody },
+    Token::KeywordImpl Identifier "for" Identifier "{" ImplBody "}" =>
+        Decl::ImplTrait { trait_name: Identifier, target: Identifier, items: ImplBody }
+};
+
+ImplBody: Vec<ImplItem> = {
+    <items:ImplItem*> => items
+};
+
+ImplItem: ImplItem = {
+    FunctionDecl => ImplItem::Function(FunctionDecl),
+    Token::KeywordConst Identifier "=" Expr ";" => ImplItem::Const(Identifier, Expr)
 };
 
 // ---------- Functions ----------
 FunctionDecl: Decl = {
-    "fn" Identifier "(" ParamList ")" Block => Decl::Function(Identifier, ParamList, Block),
-    "async" "fn" Identifier "(" ParamList ")" Block => Decl::AsyncFunction(Identifier, ParamList, Block)
+    Token::KeywordFn Identifier "(" ParamList ")" Block => Decl::Function(Identifier, ParamList, Block),
+    Token::KeywordAsync Token::KeywordFn Identifier "(" ParamList ")" Block =>
+        Decl::AsyncFunction(Identifier, ParamList, Block)
 };
 
 ParamList: Vec<String> = {
@@ -100,26 +105,33 @@ StatementList: Vec<Stmt> = {
     }
 };
 
+// ---------- Statements ----------
 Statement: Stmt = {
     LetDecl => <> ,
-    Expression ";" => Stmt::Expr(<>),
-    "return" Expression ";" => Stmt::Return(<>)
+    Token::KeywordWhile Expr Block => Stmt::While { cond: Expr, body: Block },
+    Token::KeywordLoop Block => Stmt::Loop { body: Block },
+    Token::KeywordFor Pattern Token::KeywordIn Expr Block => Stmt::For { pattern: Pattern, iter: Expr, body: Block },
+    Token::KeywordBreak ";" => Stmt::Break,
+    Token::KeywordContinue ";" => Stmt::Continue,
+    Token::KeywordReturn Expr ";" => Stmt::Return(<>),
+    Token::KeywordMatch Expr "{" MatchArms "}" ";" => Stmt::Expr(Expr::Match { value: Box::new(Expr), arms: MatchArms }),
+    Expr ";" => Stmt::Expr(<>)
 };
 
 MaybeImplicitReturn: Option<Expr> = {
     /* empty */ => None,
-    Expression => Some(Expression)
+    Expr => Some(Expr)
 };
 
 // ---------- Let Declarations ----------
 LetDecl: Stmt = {
-    "let" MaybeMut Identifier MaybeType "=" Expression ";" =>
-        Stmt::Let { mutable: MaybeMut, name: Identifier, ty: MaybeType, value: Expression }
+    Token::KeywordLet MaybeMut Pattern MaybeType "=" Expr ";" =>
+        Stmt::Let { mutable: MaybeMut, pattern: Pattern, ty: MaybeType, value: Expr }
 };
 
 MaybeMut: bool = {
     /* empty */ => false,
-    "mut" => true
+    Token::KeywordMut => true
 };
 
 MaybeType: Option<TypeExpr> = {
@@ -127,47 +139,107 @@ MaybeType: Option<TypeExpr> = {
     ":" TypeExpr => Some(TypeExpr)
 };
 
+// ---------- Patterns ----------
+Pattern: Pattern = {
+    Identifier => Pattern::Identifier(Identifier),
+    Number => Pattern::Number(Number),
+    StringLiteral => Pattern::String(StringLiteral),
+    Token::Underscore => Pattern::Wildcard,
+    Token::KeywordSome "(" Pattern ")" => Pattern::Some(Box::new(Pattern)),
+    Token::KeywordOk "(" Pattern ")" => Pattern::Ok(Box::new(Pattern)),
+    Token::KeywordErr "(" Pattern ")" => Pattern::Err(Box::new(Pattern)),
+    Token::KeywordNone => Pattern::None,
+    "(" PatternList ")" => Pattern::Tuple(PatternList),
+    Identifier "{" FieldPatternList "}" => Pattern::Struct { name: Identifier, fields: FieldPatternList },
+};
+
+PatternList: Vec<Pattern> = {
+    /* empty */ => vec![],
+    Pattern ++ ","
+};
+
+FieldPatternList: Vec<(String, Pattern)> = {
+    /* empty */ => vec![],
+    FieldPattern ++ ","
+};
+
+FieldPattern: (String, Pattern) = {
+    Identifier ":" Pattern => (Identifier, Pattern),
+    Identifier => (Identifier.clone(), Pattern::Identifier(Identifier)),
+};
+
 // ---------- Expressions ----------
-Expression: Expr = {
-    Expression "|>" Expression => Expr::PipeForward(Box::new(<>), Box::new(<>)),
-    Expression "++" Expression => Expr::Append(Box::new(<>), Box::new(<>)),
-    Expression ":" Expression => Expr::Prepend(Box::new(<>), Box::new(<>)),
-    "[" ListItems "]" => Expr::List(<>),
+Expr: Expr = {
+    MatchExpr => <>,
+    Logic => <>
+};
+
+MatchExpr: Expr = {
+    Token::KeywordMatch Expr "{" MatchArms "}" => Expr::Match { value: Box::new(Expr), arms: MatchArms },
+    Logic
+};
+
+Range: Expr = {
+    <a:AddSub> ".." <b:AddSub> => Expr::Call("range".into(), vec![a, b]),
+    AddSub
+};
+
+Pipe: Expr = {
+    Pipe "|>" Append => Expr::PipeForward(Box::new(Pipe), Box::new(Append)),
+    Append
+};
+
+Append: Expr = {
+    Append "++" Logic => Expr::Append(Box::new(Append), Box::new(Logic)),
+    Logic
+};
+
+Logic: Expr = {
+    Logic "||" Compare => Expr::Binary("||".into(), Box::new(Logic), Box::new(Compare)),
+    Logic "&&" Compare => Expr::Binary("&&".into(), Box::new(Logic), Box::new(Compare)),
+    Compare
+};
+
+Compare: Expr = {
+    Compare "==" AddSub => Expr::Binary("==".into(), Box::new(Compare), Box::new(AddSub)),
+    Compare "!=" AddSub => Expr::Binary("!=".into(), Box::new(Compare), Box::new(AddSub)),
+    Compare "<" AddSub => Expr::Binary("<".into(), Box::new(Compare), Box::new(AddSub)),
+    Compare ">" AddSub => Expr::Binary(">".into(), Box::new(Compare), Box::new(AddSub)),
+    AddSub
+};
+
+AddSub: Expr = {
+    AddSub "+" MulDiv => Expr::Binary("+".into(), Box::new(AddSub), Box::new(MulDiv)),
+    AddSub "-" MulDiv => Expr::Binary("-".into(), Box::new(AddSub), Box::new(MulDiv)),
+    MulDiv
+};
+
+MulDiv: Expr = {
+    MulDiv "*" Unary => Expr::Binary("*".into(), Box::new(MulDiv), Box::new(Unary)),
+    MulDiv "/" Unary => Expr::Binary("/".into(), Box::new(MulDiv), Box::new(Unary)),
+    Unary
+};
+
+Unary: Expr = {
+    "-" Unary => Expr::Unary("-".into(), Box::new(Unary)),
+    "!" Unary => Expr::Unary("!".into(), Box::new(Unary)),
+    Postfix
+};
+
+Postfix: Expr = {
+    Postfix "++" => Expr::PostfixInc(Box::new(Postfix)),
+    Primary
+};
+
+Primary: Expr = {
+    "(" Expr ")" => Expr::Grouped(Box::new(Expr)),
     FunctionCall => <> ,
     Literal => <> ,
     IdentifierRef => <> ,
-    GroupedExpr => <>
-};
-
-GroupedExpr: Expr = {
-    "(" Expression ")" => Expr::Grouped(Box::new(Expression))
-};
-
-IdentifierRef: Expr = {
-    Identifier => Expr::Identifier(Identifier),
-    Path => Expr::Path(Path)
-};
-
-Literal: Expr = {
-    Number => Expr::Number(Number),
-    StringLiteral => Expr::String(StringLiteral),
-    "true" => Expr::Bool(true),
-    "false" => Expr::Bool(false)
-};
-
-// ---------- Lists ----------
-ListItems: Vec<Expr> = {
-    /* empty */ => vec![],
-    <exprs:ExpressionList> => exprs
-};
-
-ExpressionList: Vec<Expr> = {
-    Expression ++ ",",
-    <list:ExpressionList> "," ".." Identifier => {
-        let mut exprs = list;
-        exprs.push(Expr::Spread(Identifier));
-        exprs
-    }
+    Token::KeywordSome "(" Expr ")" => Expr::Some(Box::new(Expr)),
+    Token::KeywordNone => Expr::None,
+    Token::KeywordOk "(" Expr ")" => Expr::Ok(Box::new(Expr)),
+    Token::KeywordErr "(" Expr ")" => Expr::Err(Box::new(Expr)),
 };
 
 // ---------- Function Calls ----------
@@ -181,24 +253,28 @@ ArgList: Vec<Expr> = {
 };
 
 Args: Vec<Expr> = {
-    Expression ++ ","
+    Expr ++ ","
 };
 
-// ---------- Types ----------
-TypeExpr: TypeExpr = {
-    Identifier => TypeExpr::Simple(Identifier),
-    Identifier "::" Identifier => TypeExpr::Scoped(Identifier, Identifier)
+// ---------- Literals ----------
+Number: Expr = {
+    <t:Tok> => match t {
+        Token::NumberInt(n) => Expr::NumberInt(n),
+        Token::NumberFloat(f) => Expr::NumberFloat(f),
+        _ => panic!("Expected number")
+    }
 };
 
-// ---------- Tokens ----------
+StringLiteral: Expr = {
+    <t:Tok> => match t {
+        Token::String(s) => Expr::String(s),
+        _ => panic!("Expected string")
+    }
+};
+
 Identifier: String = {
-    <t:Token> => match t { Token::Identifier(s) => s, _ => panic!("Expected identifier") }
-};
-
-Number: f64 = {
-    <t:Token> => match t { Token::Number(n) => n, _ => panic!("Expected number") }
-};
-
-StringLiteral: String = {
-    <t:Token> => match t { Token::String(s) => s, _ => panic!("Expected string") }
+    <t:Tok> => match t {
+        Token::Identifier(s) => s,
+        _ => panic!("Expected identifier")
+    }
 };
