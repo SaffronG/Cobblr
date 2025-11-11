@@ -1,0 +1,287 @@
+use crate::ast::*;
+
+grammar;
+
+// === PROGRAM ===
+pub Program: crate::ast::Program = {
+    Declarations => crate::ast::Program(Declarations)
+};
+
+// === DECLARATIONS ===
+pub Declarations: Vec<crate::ast::Decl> = {
+    => vec![],
+    <ds:Declarations> <d:Declaration> => {
+        let mut v = ds;
+        v.push(d);
+        v
+    }
+};
+
+pub Declaration: crate::ast::Decl = {
+    FunctionDecl => FunctionDecl,
+    StructDecl => StructDecl,
+    EnumDecl => EnumDecl,
+    TraitDecl => TraitDecl,
+    ImplDecl => ImplDecl,
+    LetDecl => LetDecl,
+    ImportDecl => ImportDecl,
+    DeriveAttrStruct => DeriveAttrStruct
+};
+
+// === IMPORT ===
+pub ImportDecl: crate::ast::Decl = {
+    "use" <path:Path> ";" => crate::ast::Decl::Import(path),
+    "import" <path:Path> ";" => crate::ast::Decl::Import(path)
+};
+
+pub Path: crate::ast::Path = {
+    <id:Identifier> => crate::ast::Path::Single(id),
+    <p:Path> "::" <id:Identifier> => crate::ast::Path::Nested(Box::new(p), id)
+};
+
+// === DERIVE ATTR STRUCT ===
+pub DeriveAttrStruct: crate::ast::Decl = {
+    "#derive" "(" <ids:IdentifierList> ")" <s:StructDecl> =>
+        crate::ast::Decl::DerivedStruct(ids, Box::new(s))
+};
+
+// === IDENTIFIERS ===
+pub IdentifierList: Vec<String> = {
+    <id:Identifier> => vec![id],
+    <ids:IdentifierList> "," <id:Identifier> => {
+        let mut v = ids;
+        v.push(id);
+        v
+    }
+};
+
+Identifier: String = {
+    <id:r"[a-zA-Z_][a-zA-Z0-9_]*"> => id.to_string()
+};
+
+// === STRUCTS ===
+pub StructDecl: crate::ast::Decl = {
+    "struct" <id:Identifier> "{" <members:StructBody> "}" =>
+        crate::ast::Decl::Struct(id, members)
+};
+
+StructBody: Vec<crate::ast::StructMember> = {
+    => vec![],
+    <body:StructBody> <m:StructMember> => {
+        let mut v = body;
+        v.push(m);
+        v
+    }
+};
+
+StructMember: crate::ast::StructMember = {
+    <id:Identifier> ":" <ty:TypeExpr> ";" =>
+        crate::ast::StructMember::Field(id, ty),
+    <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" =>
+        crate::ast::StructMember::FieldInit(id, ty, e)
+};
+
+// === ENUMS ===
+EnumDecl: crate::ast::Decl = {
+    "enum" <id:Identifier> "{" <variants:EnumVariants> "}" =>
+        crate::ast::Decl::Enum(id, variants)
+};
+
+EnumVariants: Vec<(String, Option<Vec<TypeExpr>>)> = {
+    => vec![],
+    <v:EnumVariants> <v2:EnumVariant> => {
+        let mut vec = v;
+        vec.push(v2);
+        vec
+    }
+};
+
+EnumVariant: (String, Option<Vec<TypeExpr>>) = {
+    <id:Identifier> "," => (id, None),
+    <id:Identifier> "(" <types:TypeList> ")" ","? => (id, Some(types))
+};
+
+// === TRAITS ===
+TraitDecl: crate::ast::Decl = {
+    "trait" <id:Identifier> "{" <methods:TraitMethods> "}" =>
+        crate::ast::Decl::Trait(id, methods)
+};
+
+TraitMethods: Vec<crate::ast::TraitMethod> = {
+    => vec![],
+    <ms:TraitMethods> <m:TraitMethod> => {
+        let mut v = ms;
+        v.push(m);
+        v
+    }
+};
+
+TraitMethod: crate::ast::TraitMethod = {
+    "fn" <id:Identifier> "(" <params:ParamList> ")" ";" =>
+        crate::ast::TraitMethod::Sig(id, params)
+};
+
+// === IMPL ===
+ImplDecl: crate::ast::Decl = {
+    "impl" <id:Identifier> "{" <body:ImplBody> "}" =>
+        crate::ast::Decl::Impl(id, body)
+};
+
+ImplBody: Vec<crate::ast::Decl> = {
+    => vec![],
+    <b:ImplBody> <f:FunctionDecl> => {
+        let mut v = b;
+        v.push(f);
+        v
+    }
+};
+
+// === FUNCTIONS ===
+pub FunctionDecl: crate::ast::Decl = {
+    "fn" <id:Identifier> "(" <params:ParamList> ")" <body:Block> =>
+        crate::ast::Decl::Function(id, params, body),
+    "async" "fn" <id:Identifier> "(" <params:ParamList> ")" <body:Block> =>
+        crate::ast::Decl::AsyncFunction(id, params, body)
+};
+
+pub ParamList: Vec<String> = {
+    => vec![],
+    <id:Identifier> => vec![id],
+    <ps:ParamList> "," <id:Identifier> => {
+        let mut v = ps;
+        v.push(id);
+        v
+    }
+};
+
+// === LET DECL ===
+pub LetDecl: crate::ast::Decl = {
+    "let" <id:Identifier> "=" <e:Expr> ";" => crate::ast::Decl::Let(id, e),
+    "let" "mut" <id:Identifier> "=" <e:Expr> ";" => crate::ast::Decl::LetMut(id, e)
+};
+
+// === BLOCKS & STATEMENTS ===
+pub Block: crate::ast::Block = {
+    "{" <stmts:StatementList> <ret:MaybeImplicitReturn> "}" =>
+        crate::ast::Block { statements: stmts, implicit_return: ret }
+};
+
+pub StatementList: Vec<crate::ast::Stmt> = {
+    => vec![],
+    <ss:StatementList> <s:Statement> => {
+        let mut v = ss;
+        v.push(s);
+        v
+    }
+};
+
+pub Statement: crate::ast::Stmt = {
+    LetDecl => crate::ast::Stmt::LetDecl(LetDecl),
+    Expr ";" => crate::ast::Stmt::ExprStmt(Expr),
+    "return" Expr ";" => crate::ast::Stmt::Return(Expr),
+    IfStmt => crate::ast::Stmt::If(IfStmt),
+    "while" Expr Block => crate::ast::Stmt::While(Expr, Block),
+    "for" <id:Identifier> "in" <e:Expr> <b:Block> => crate::ast::Stmt::For(id, e, b)
+};
+
+// === IF / ELSE ===
+IfStmt: crate::ast::IfStmt = {
+    "if" <cond:Expr> <then:Block> => crate::ast::IfStmt { cond: Box::new(cond), then_branch: then, else_branch: None },
+    "if" <cond:Expr> <then:Block> "else" <else_block:Block> => crate::ast::IfStmt { cond: Box::new(cond), then_branch: then, else_branch: Some(else_block) }
+};
+
+pub MaybeImplicitReturn: Option<Expr> = {
+    => None,
+    <e:Expr> => Some(e)
+};
+
+// === MATCH ===
+MatchExpr: crate::ast::Expr = {
+    "match" <value:Expr> "{" <arms:MatchArms> "}" =>
+        crate::ast::Expr::Match { value: Box::new(value), arms }
+};
+
+MatchArms: Vec<crate::ast::MatchArm> = {
+    => vec![],
+    <v:MatchArms> <arm:MatchArm> => {
+        let mut vec = v;
+        vec.push(arm);
+        vec
+    }
+};
+
+MatchArm: crate::ast::MatchArm = {
+    <pat:Pattern> "=>" <body:Block> ","? => crate::ast::MatchArm { pattern: pat, body }
+};
+
+Pattern: crate::ast::Pattern = {
+    Identifier => crate::ast::Pattern::Var(Identifier),
+    NumberInt => crate::ast::Pattern::Number(NumberInt),
+    NumberFloat => crate::ast::Pattern::Number(NumberFloat),
+    "_" => crate::ast::Pattern::Wildcard,
+    "Some" "(" Pattern ")" => crate::ast::Pattern::Some(Box::new(Pattern)),
+    "None" => crate::ast::Pattern::None
+};
+
+// === TYPE EXPRESSIONS ===
+pub TypeExpr: crate::ast::TypeExpr = {
+    "i64" => crate::ast::TypeExpr::Int64,
+    "f64" => crate::ast::TypeExpr::Float64,
+    "bool" => crate::ast::TypeExpr::Bool,
+    "string" => crate::ast::TypeExpr::String,
+    <id:Identifier> => crate::ast::TypeExpr::Custom(id),
+    <id:Identifier> "<" <types:TypeList> ">" => crate::ast::TypeExpr::Generic(id, types),
+    "(" <t:TypeExpr> ")" => t
+};
+
+TypeList: Vec<crate::ast::TypeExpr> = {
+    <t:TypeExpr> => vec![t],
+    <ts:TypeList> "," <t:TypeExpr> => { let mut v = ts; v.push(t); v }
+};
+
+// === NUMBERS ===
+NumberInt: crate::ast::Number::Int = {
+    <n:r"-?[0-9]+"> => crate::ast::Number::Int(n.parse().unwrap())
+};
+
+NumberFloat: crate::ast::Number::Float = {
+    <n:r"-?[0-9]+\.[0-9]+"> => crate::ast::Number::Float(n.parse().unwrap())
+};
+
+String: String = {
+    <s: r#""([^"\\]|\\.)*""#> => s.to_string()
+};
+
+// === ARGUMENT LISTS ===
+ArgList: Vec<crate::ast::Expr> = {
+    => vec![],
+    <e:Expr> => vec![e],
+    <args:ArgList> "," <e:Expr> => { let mut v = args; v.push(e); v }
+};
+
+pub Expr: crate::ast::Expr = {
+    #[precedence(level="1")]
+    NumberInt => crate::ast::Expr::Number(NumberInt),
+    NumberFloat => crate::ast::Expr::Number(NumberFloat),
+    Identifier => crate::ast::Expr::Identifier(Identifier),
+    
+    "(" Expr ")" => Expr,
+    
+    #[precedence(level="3")] #[assoc(side="left")]
+    Expr "*" Expr => crate::ast::Expr::Mul(Box::new(Expr), Box::new(Expr2)),
+    Expr "/" Expr => crate::ast::Expr::Div(Box::new(Expr), Box::new(Expr2)),
+
+    #[precedence(level="4")] #[assoc(side="left")]
+    Expr "+" Expr => crate::ast::Expr::Add(Box::new(Expr), Box::new(Expr2)),
+    Expr "-" Expr => crate::ast::Expr::Sub(Box::new(Expr), Box::new(Expr2)),
+
+    #[precedence(level="5")] #[assoc(side="none")]
+    Expr "==" Expr => crate::ast::Expr::Equal(Box::new(Expr), Box::new(Expr2)),
+    Expr "!=" Expr => crate::ast::Expr::NotEqual(Box::new(Expr), Box::new(Expr2)),
+    Expr "<" Expr => crate::ast::Expr::Less(Box::new(Expr), Box::new(Expr2)),
+    Expr "<=" Expr => crate::ast::Expr::LessEq(Box::new(Expr), Box::new(Expr2)),
+    Expr ">" Expr => crate::ast::Expr::Greater(Box::new(Expr), Box::new(Expr2)),
+    Expr ">=" Expr => crate::ast::Expr::GreaterEq(Box::new(Expr), Box::new(Expr2)),
+
+    MatchExpr => MatchExpr
+};

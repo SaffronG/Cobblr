@@ -1,144 +1,139 @@
 #[derive(Debug, Clone)]
 pub struct Program(pub Vec<Decl>);
 
-// ---------- Declarations ----------
 #[derive(Debug, Clone)]
 pub enum Decl {
     Function(String, Vec<String>, Block),
     AsyncFunction(String, Vec<String>, Block),
     Struct(String, Vec<StructMember>),
-    DerivedStruct(Vec<String>, Box<Decl>),
-    Impl {
-        target: String,
-        items: Vec<ImplItem>,
-    },
-    ImplTrait {
-        trait_name: String,
-        target: String,
-        items: Vec<ImplItem>,
-    },
+    Enum(String, Vec<(String, Option<Vec<TypeExpr>>)>),
+    Trait(String, Vec<TraitMethod>),
+    Impl(String, Vec<Decl>),
+    Let(String, Expr),
+    LetMut(String, Expr),
     Import(Path),
-    Let(Stmt),
+    DerivedStruct(Vec<String>, Box<Decl>),
 }
 
-// ---------- Paths ----------
 #[derive(Debug, Clone)]
-pub enum Path {
-    Single(String),
-    Nested(Box<Path>, String),
+pub struct StructMember {
+    pub name: String,
+    pub ty: TypeExpr,
+    pub init: Option<Expr>,
 }
 
-// ---------- Struct Members ----------
+impl StructMember {
+    pub fn Field(name: String, ty: TypeExpr) -> Self {
+        StructMember {
+            name,
+            ty,
+            init: None,
+        }
+    }
+
+    pub fn FieldInit(name: String, ty: TypeExpr, init: Expr) -> Self {
+        StructMember {
+            name,
+            ty,
+            init: Some(init),
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
-pub enum StructMember {
-    Field(String, TypeExpr),
-    FieldDefault(String, TypeExpr, Expr),
-    Method(Decl),
+pub struct TraitMethod {
+    pub name: String,
+    pub params: Vec<String>,
 }
 
-// ---------- Implementations ----------
-#[derive(Debug, Clone)]
-pub enum ImplItem {
-    Function(Decl),
-    Const(String, Expr),
+impl TraitMethod {
+    pub fn Sig(name: String, params: Vec<String>) -> Self {
+        TraitMethod { name, params }
+    }
 }
 
-// ---------- Blocks ----------
 #[derive(Debug, Clone)]
 pub struct Block {
     pub statements: Vec<Stmt>,
     pub implicit_return: Option<Expr>,
 }
 
-// ---------- Statements ----------
 #[derive(Debug, Clone)]
 pub enum Stmt {
-    Let {
-        mutable: bool,
-        pattern: Pattern,
-        ty: Option<TypeExpr>,
-        value: Expr,
-    },
-    While {
-        cond: Expr,
-        body: Block,
-    },
-    Loop {
-        body: Block,
-    },
-    For {
-        pattern: Pattern,
-        iter: Expr,
-        body: Block,
-    },
-    Break,
-    Continue,
+    LetDecl(Decl),
+    ExprStmt(Expr),
     Return(Expr),
-    Expr(Expr),
+    If(IfStmt),
+    While(Expr, Block),
+    For(String, Expr, Block),
 }
 
-// ---------- Patterns ----------
 #[derive(Debug, Clone)]
-pub enum Pattern {
-    Identifier(String),
-    NumberInt(i64),
-    NumberFloat(f64),
-    String(String),
-    Wildcard,
-    Some(Box<Pattern>),
-    None,
-    Ok(Box<Pattern>),
-    Err(Box<Pattern>),
-    Tuple(Vec<Pattern>),
-    Struct {
-        name: String,
-        fields: Vec<(String, Pattern)>,
-    },
+pub struct IfStmt {
+    pub cond: Box<Expr>,
+    pub then_branch: Block,
+    pub else_branch: Option<Block>,
 }
 
-// ---------- Expressions ----------
 #[derive(Debug, Clone)]
 pub enum Expr {
     Identifier(String),
-    NumberInt(i64),
-    NumberFloat(f64),
-    String(String),
-    Bool(bool),
-    Call(String, Vec<Expr>),
-    FunctionCall(Box<Expr>, Vec<Expr>),
-    Some(Box<Expr>),
-    None,
-    Ok(Box<Expr>),
-    Err(Box<Expr>),
-    Binary(String, Box<Expr>, Box<Expr>),
-    Unary(String, Box<Expr>),
-    Append(Box<Expr>, Box<Expr>),
-    PipeForward(Box<Expr>, Box<Expr>),
-    PostfixInc(Box<Expr>),
-    Map(Box<Expr>, Box<Expr>),    // e.g., iter.map(...)
-    Filter(Box<Expr>, Box<Expr>), // e.g., iter.filter(...)
+    Number(Number),
     Match {
         value: Box<Expr>,
         arms: Vec<MatchArm>,
     },
-    Grouped(Box<Expr>),
-    Block(Block),
-    Spread(String),
+
+    // Binary operations
+    Add(Box<Expr>, Box<Expr>),
+    Sub(Box<Expr>, Box<Expr>),
+    Mul(Box<Expr>, Box<Expr>),
+    Div(Box<Expr>, Box<Expr>),
+
+    // Comparison
+    Equal(Box<Expr>, Box<Expr>),
+    NotEqual(Box<Expr>, Box<Expr>),
+    Less(Box<Expr>, Box<Expr>),
+    LessEq(Box<Expr>, Box<Expr>),
+    Greater(Box<Expr>, Box<Expr>),
+    GreaterEq(Box<Expr>, Box<Expr>),
 }
 
-// ---------- Match Arms ----------
+#[derive(Debug, Clone)]
+pub enum Number {
+    Int(i64),
+    Float(f64),
+}
+
 #[derive(Debug, Clone)]
 pub struct MatchArm {
     pub pattern: Pattern,
-    pub body: Expr,
+    pub body: Block,
 }
 
-// ---------- Type Expressions ----------
+#[derive(Debug, Clone)]
+pub enum Pattern {
+    Var(String),
+    Number(Number),
+    Wildcard,
+    Some(Box<Pattern>),
+    None,
+}
+
 #[derive(Debug, Clone)]
 pub enum TypeExpr {
-    Simple(String),
-    Scoped(String, String),
+    Int64,
+    Float64,
+    Bool,
+    String,
+    Custom(String),
+    Generic(String, Vec<TypeExpr>),
 }
 
-// ---------- Helpers ----------
-pub type Identifier = String;
+pub type Path = PathExpr;
+
+#[derive(Debug, Clone)]
+pub enum PathExpr {
+    Single(String),
+    Nested(Box<PathExpr>, String),
+}
