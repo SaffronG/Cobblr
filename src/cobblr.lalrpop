@@ -54,6 +54,11 @@ Identifier: String = {
     <id:r"[a-zA-Z_][a-zA-Z0-9_]*"> => id.to_string()
 };
 
+// add a TypeIdentifier (starts with uppercase) to disambiguate type/struct names
+TypeIdentifier: String = {
+    <id:r"[A-Z][a-zA-Z0-9_]*"> => id.to_string()
+};
+
 pub StructDecl: crate::ast::Decl = {
     "struct" <id:Identifier> "{" <members:StructBody> "}" =>
         crate::ast::Decl::Struct(id, members)
@@ -265,7 +270,7 @@ ArgList: Vec<crate::ast::Expr> = {
 };
 
 StructLiteral: (String, Vec<(String, Expr)>) = {
-    <name:Identifier> "{" <fields:FieldList> "}" => (name, fields)
+    <name:TypeIdentifier> "{" <fields:FieldList> "}" => (name, fields)
 };
 
 FieldList: Vec<(String, Expr)> = {
@@ -289,39 +294,48 @@ ParamNames: Vec<String> = {
     <ps:ParamNames> "," <id:Identifier> => { let mut v = ps; v.push(id); v }
 };
 
-pub Expr: crate::ast::Expr = {
-    #[precedence(level="1")]
+// PRIMARY: atoms (numbers, strings, id, parenthesis, closures, match, struct literal)
+Primary: crate::ast::Expr = {
     NumberInt => crate::ast::Expr::Number(NumberInt),
     NumberFloat => crate::ast::Expr::Number(NumberFloat),
     String => crate::ast::Expr::String(String),
     Identifier => crate::ast::Expr::Identifier(Identifier),
-    
-    #[precedence(level="1")]
-    Closure => Closure,
-    
-    #[precedence(level="2")]
+
     "(" <e:Expr> ")" => e,
-    
-    #[precedence(level="2")]
+
+    Closure => Closure,
+
+    MatchExpr => MatchExpr,
+
     <lit:StructLiteral> => {
         let (name, fields) = lit;
         crate::ast::Expr::StructLit(name, fields)
-    },
-    
-    #[precedence(level="2")]
-    <id:Identifier> "::" <method:Identifier> "(" <args:ArgList> ")" =>
-        crate::ast::Expr::AssocCall(id, method, args),
-    
-    #[precedence(level="2")]
-    <id:Identifier> "(" <args:ArgList> ")" => crate::ast::Expr::Call(id, args),
-    
-    #[precedence(level="2")]
-    <obj:Expr> "." <method:Identifier> "(" <args:ArgList> ")" =>
+    }
+};
+
+// POSTFIX: left-recursive to handle method chaining and restrict plain calls to Identifier starts,
+// and assoc calls to TypeIdentifier::method(...)
+Postfix: crate::ast::Expr = {
+    // start from a primary atom
+    <p:Primary> => p,
+
+    // method call chaining: obj.method(args)
+    <obj:Postfix> "." <method:Identifier> "(" <args:ArgList> ")" =>
         crate::ast::Expr::MethodCall(Box::new(obj), method, args),
-    
+
+    // plain function call only when starting with an Identifier token
+    <id:Identifier> "(" <args:ArgList> ")" => crate::ast::Expr::Call(id, args),
+
+    // associated (type) call like Type::method(...)
+    <t:TypeIdentifier> "::" <method:Identifier> "(" <args:ArgList> ")" =>
+        crate::ast::Expr::AssocCall(t, method, args)
+};
+
+// Use Postfix as base operand for operators (preserve precedence)
+pub Expr: crate::ast::Expr = {
     #[precedence(level="3")] #[assoc(side="left")]
-    <l:Expr> "*" <r:Expr> => crate::ast::Expr::Mul(Box::new(l), Box::new(r)),
-    <l:Expr> "/" <r:Expr> => crate::ast::Expr::Div(Box::new(l), Box::new(r)),
+    <l:Expr> "*" <r:Postfix> => crate::ast::Expr::Mul(Box::new(l), Box::new(r)),
+    <l:Expr> "/" <r:Postfix> => crate::ast::Expr::Div(Box::new(l), Box::new(r)),
 
     #[precedence(level="4")] #[assoc(side="left")]
     <l:Expr> "+" <r:Expr> => crate::ast::Expr::Add(Box::new(l), Box::new(r)),
@@ -336,5 +350,6 @@ pub Expr: crate::ast::Expr = {
     <l:Expr> ">" <r:Expr> => crate::ast::Expr::Greater(Box::new(l), Box::new(r)),
     <l:Expr> ">=" <r:Expr> => crate::ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
 
-    MatchExpr => MatchExpr
+    // base case: a Postfix expression (primary possibly with postfix ops)
+    Postfix => Postfix
 };
