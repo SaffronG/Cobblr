@@ -5,10 +5,12 @@ use lalrpop_util::lalrpop_mod;
 
 lalrpop_mod!(pub cobblr);
 
-use crate::ast::*;
+//use crate::ast::*;
 use cobblr::ProgramParser;
+//use std::env;
 
 fn main() {
+    //let args: Vec<String> = args.collect::Vec<string>[1];
     let input = r#"
         let x = 5;
         let y = Some(x + 3);

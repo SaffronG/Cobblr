@@ -86,7 +86,7 @@ pub enum Token<'input> {
     #[token("&")]
     Ampersand,
 
-    #[token("_")]
+    #[token("_", priority = 3)]
     Underscore,
 
     #[token("=")]

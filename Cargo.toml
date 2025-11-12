@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 logos = "0.13"
-lalrpop-util = "0.20"
+lalrpop-util = { version = "0.20", features = ["lexer"] } 
 
 [build-dependencies]
 lalrpop = "0.20"
