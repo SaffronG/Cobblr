@@ -1,199 +1,24 @@
-use logos::Logos;
+use logos::{Logos, SpannedIter};
+use crate::tokens::{Token, LexicalError};
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Opcode {
-    Add,
-    Sub,
-    Mul,
-    Div,
-    Eq,
-    NotEq,
-    Lt,
-    Gt,
+pub type Spanned<Tok, Loc, Error> = Result<Loc, Tok, Loc), Error;
+
+pub struct Lexer<'input> {
+    token_stream: SpannedIter<'input, Token>
 }
 
-#[derive(Logos, Debug, PartialEq, Clone)]
-pub enum Token<'input> {
-    // ----------------------
-    // Literals
-    // ----------------------
-    #[regex(r"[0-9]+", |lex| lex.slice())]
-    NumSymbol(&'input str),
+impl<'input> Lexer<'input> {
+  pub fn new(input: &'input str) -> Self {
+    Self { token_stream: Token::lexer(input).spanned() }
+  }
+}
 
-    #[regex(r"[0-9]+\.[0-9]+", |lex| lex.slice())]
-    FloatSymbol(&'input str),
+impl<'input> Iterator for Lexer<'input> {
+  type Item = Spanned<Token, usize, LexicalError>;
 
-    #[regex(r#""([^"\\]|\\.)*""#, |lex| &lex.slice()[1..lex.slice().len()-1])]
-    StringSymbol(&'input str),
-
-    #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", priority = 2)]
-    Identifier(&'input str),
-
-    // ----------------------
-    // Multi-char Operators (must come before single-char)
-    // ----------------------
-    #[token("==")]
-    EqEq,
-
-    #[token("!=")]
-    NotEq,
-
-    #[token("++")]
-    PlusPlus,
-
-    #[token("<=")]
-    LtEq,
-
-    #[token(">=")]
-    GtEq,
-
-    #[token("->")]
-    Arrow,
-
-    #[token("::")]
-    ColonColon,
-
-    // ----------------------
-    // Single-char Operators
-    // ----------------------
-    #[token("+")]
-    Plus,
-
-    #[token("-")]
-    Minus,
-
-    #[token("*")]
-    Star,
-
-    #[token("/")]
-    Slash,
-
-    #[token("<")]
-    Lt,
-
-    #[token(">")]
-    Gt,
-
-    #[token("!")]
-    Bang,
-
-    #[token(".")]
-    Dot,
-
-    #[token("|")]
-    Pipe,
-
-    #[token("&")]
-    Ampersand,
-
-    #[token("_", priority = 3)]
-    Underscore,
-
-    #[token("=")]
-    Eq,
-
-    // ----------------------
-    // Delimiters
-    // ----------------------
-    #[token("(")]
-    ParenOpen,
-
-    #[token(")")]
-    ParenClose,
-
-    #[token("{")]
-    BraceOpen,
-
-    #[token("}")]
-    BraceClose,
-
-    #[token(";")]
-    Semi,
-
-    #[token(",")]
-    Comma,
-
-    // ----------------------
-    // Keywords
-    // ----------------------
-    #[token("fn")]
-    Fn,
-
-    #[token("async")]
-    Async,
-
-    #[token("struct")]
-    Struct,
-
-    #[token("let")]
-    Let,
-
-    #[token("mut")]
-    Mut,
-
-    #[token("impl")]
-    Impl,
-
-    #[token("for")]
-    For,
-
-    #[token("while")]
-    While,
-
-    #[token("loop")]
-    Loop,
-
-    #[token("return")]
-    Return,
-
-    #[token("break")]
-    Break,
-
-    #[token("continue")]
-    Continue,
-
-    #[token("match")]
-    Match,
-
-    #[token("Some")]
-    Some,
-
-    #[token("Ok")]
-    Ok,
-
-    #[token("Err")]
-    Err,
-
-    #[token("None")]
-    None,
-
-    #[token("#derive")]
-    Derive,
-
-    #[token("true")]
-    True,
-
-    #[token("false")]
-    False,
-
-    #[token("trait")]
-    Trait,
-
-    #[token("enum")]
-    Enum,
-
-    #[token("use")]
-    Use,
-
-    #[token("import")]
-    Import,
-
-    #[token("if")]
-    If,
-
-    #[token("else")]
-    Else,
-
-    #[token("in")]
-    In,
+  fn next(&mut self) -> Option<Self::Item> {
+    self.token_stream
+      .next()
+      .map(|(token, span)| Ok((span.start, token?, span.end)))
+  }
 }

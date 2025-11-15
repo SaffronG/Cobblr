@@ -156,3 +156,9 @@ pub enum PathExpr {
     Single(String),
     Nested(Box<PathExpr>, String),
 }
+
+#[derive(Debug, Clone)]
+pub enum Bool {
+    True,
+    False,
+}

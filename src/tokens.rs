@@ -1,21 +1,56 @@
+use std::fmt;
+use std::num::{ParseIntError, ParseFloatError};
 logos::Logos;
+
+#[derive(Default, Debug, Clone, PartialEq)]
+pub enum LexicalError {
+    InvalidInteger(ParseIntError),
+    InvalidFloat(ParseFloatError),
+    #[default]
+    InvalidToken,
+}
+
+impl From<ParseIntError> for LexicalError {
+    fn from(err: ParseIntError) -> Self {
+        LexicalError::InvalidInteger(err)
+    }
+}
+
+impl From<ParseFloatError> for LExicalError {
+    fn from(err: ParseFloatError) -> Self {
+        LexicalError::InvalidFloat(err)
+    }
+}
 
 #[derive(Logos, Debug, PartialEq, Clone)]
 #[logos(skip r"[ \t\n\f]+", skip r"#.*\n?", error = LexicalError)]
 pub enum Token {
-    // Keywords
+    #[token("let")]
+    Let,
+    #[token("mut")]
+    Mut,
     #[token("fn")]
     Fn,
     #[token("struct")]
     Struct,
+    #[token("enum")]
+    Enum,
     #[token("impl")]
     Impl,
     #[token("for")]
     For,
+    #[token("async")]
+    Async,
+    #[token("await")]
+    Await,
     #[token("while")]
     While,
     #[token("loop")]
     Loop,
+    #[token("if")]
+    If,
+    #[token("else"]
+    Else,
     #[token("break")]
     Break,
     #[token("continue")]
@@ -34,20 +69,28 @@ pub enum Token {
     Err,
     #[token("use")]
     Use,
+    #[token("in")]
+    In,
     #[token("import")]
     Import,
     #[token("#derive")]
     Derive,
-
-    // Symbols
+    #[token("trait"]
+    Trait,
     #[token("::")]
     DoubleColon,
+    #[token(":")]
+    Colon,
+    #[token(".")]
+    Dot,
+    #[token("..")]
+    DotDot,
     #[token(";")]
     Semi,
     #[token(",")]
     Comma,
-    #[token(":")]
-    Colon,
+    #[token("_")]
+    Underscore,
     #[token("=")]
     Equals,
     #[token("+")]
@@ -62,6 +105,12 @@ pub enum Token {
     PlusPlus,
     #[token("|>")]
     PipeForward,
+    #[arrow("->"]
+    Arrow,
+    #[token("=>")
+    FatArrow,
+    #[token("&")]
+    And,
     #[token("&&")]
     AndAnd,
     #[token("||")]
@@ -86,18 +135,18 @@ pub enum Token {
     LBrace,
     #[token("}")]
     RBrace,
-
-    // Literals
-    #[regex(r"[0-9]+\.[0-9]+")]
-    Float(f64),
-    #[regex(r"[0-9]+")]
+    #[regex(r"[0-9]+\\.[0-9]+", |lex| lex.slice().to_string())]
     Int(i64),
-    #[regex(r#""([^"\\]|\\.)*""#)]
+    #[regex(r"[0-9]+", |lex| lex.slice().parse::<i64>().ok())]
+    Float(f64),
+    #[regex(r#""([^"\\]|\\.)*""#, |lex| lex.slice().parse::<f64>().ok())]
     Str(String),
-    #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*")]
+    #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", |lex| lex.slice().to_string())]
     Identifier(String),
-
-    // Logos requires this for errors
+    #[token("true", |lex| lex.slice().parse::<Bool>())]
+    True,
+    #[token("false", |lex| lex.slice().parse::<Bool>())]
+    False,
     #[error]
     #[regex(r"[ \t\n\f]+", logos::skip)]
     Error,

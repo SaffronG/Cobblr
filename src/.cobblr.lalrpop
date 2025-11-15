@@ -33,8 +33,8 @@ pub ImportDecl: ast::Decl = {
 };
 
 pub Path: ast::Path = {
-    <id:"identifier"> => ast::Path::Single(id),
-    <p:Path> "::" <id:"identifier"> => ast::Path::Nested(Box::new(p), id)
+    <id:Identifier> => ast::Path::Single(id),
+    <p:Path> "::" <id:Identifier> => ast::Path::Nested(Box::new(p), id)
 };
 
 pub DeriveAttrStruct: ast::Decl = {
@@ -43,16 +43,20 @@ pub DeriveAttrStruct: ast::Decl = {
 };
 
 pub IdentifierList: Vec<String> = {
-    <id:"identifier"> => vec![id],
-    <ids:IdentifierList> "," <id:"identifier"> => {
+    <id:Identifier> => vec![id],
+    <ids:IdentifierList> "," <id:Identifier> => {
         let mut v = ids;
         v.push(id);
         v
     }
 };
 
+Identifier: String = {
+    <id: r"[a-zA-Z_][a-zA-Z0-9_]*"> => id.to_string()
+};
+
 pub StructDecl: ast::Decl = {
-    "struct" <id:"identifier"> "{" <members:StructBody> "}" =>
+    "struct" <id:Identifier> "{" <members:StructBody> "}" =>
         ast::Decl::Struct(id, members)
 };
 
@@ -66,14 +70,14 @@ StructBody: Vec<ast::StructMember> = {
 };
 
 StructMember: ast::StructMember = {
-    <id:"identifier"> ":" <ty:TypeExpr> ";" =>
+    <id:Identifier> ":" <ty:TypeExpr> ";" =>
         ast::StructMember::field(id, ty),
-    <id:"identifier"> ":" <ty:TypeExpr> "=" <e:Expr> ";" =>
+    <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" =>
         ast::StructMember::field_init(id, ty, e)
 };
 
 EnumDecl: ast::Decl = {
-    "enum" <id:"identifier"> "{" <variants:EnumVariants> "}" =>
+    "enum" <id:Identifier> "{" <variants:EnumVariants> "}" =>
         ast::Decl::Enum(id, variants)
 };
 
@@ -87,12 +91,12 @@ EnumVariants: Vec<(String, Option<Vec<TypeExpr>>)> = {
 };
 
 EnumVariant: (String, Option<Vec<TypeExpr>>) = {
-    <id:"identifier"> "," => (id, None),
-    <id:"identifier"> "(" <types:TypeList> ")" ","? => (id, Some(types))
+    <id:Identifier> "," => (id, None),
+    <id:Identifier> "(" <types:TypeList> ")" ","? => (id, Some(types))
 };
 
 TraitDecl: ast::Decl = {
-    "trait" <id:"identifier"> "{" <methods:TraitMethods> "}" =>
+    "trait" <id:Identifier> "{" <methods:TraitMethods> "}" =>
         ast::Decl::Trait(id, methods)
 };
 
@@ -106,14 +110,14 @@ TraitMethods: Vec<ast::TraitMethod> = {
 };
 
 TraitMethod: ast::TraitMethod = {
-    "fn" <id:"identifier"> "(" <params:ParamList> ")" ";" =>
+    "fn" <id:Identifier> "(" <params:ParamList> ")" ";" =>
         ast::TraitMethod::sig(id, params)
 };
 
 ImplDecl: ast::Decl = {
-    "impl" <id:"identifier"> "{" <body:ImplBody> "}" =>
+    "impl" <id:Identifier> "{" <body:ImplBody> "}" =>
         ast::Decl::Impl(id, body),
-    "impl" <trait_name:"identifier"> "for" <struct_name:"identifier"> "{" <body:ImplBody> "}" =>
+    "impl" <trait_name:Identifier> "for" <struct_name:Identifier> "{" <body:ImplBody> "}" =>
         ast::Decl::ImplTrait(trait_name, struct_name, body)
 };
 
@@ -127,13 +131,13 @@ ImplBody: Vec<ast::Decl> = {
 };
 
 pub FunctionDecl: ast::Decl = {
-    "fn" <id:"identifier"> "(" <params:ParamList> ")" <body:Block> =>
+    "fn" <id:Identifier> "(" <params:ParamList> ")" <body:Block> =>
         ast::Decl::Function(id, params, None, body),
-    "fn" <id:"identifier"> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
+    "fn" <id:Identifier> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
         ast::Decl::Function(id, params, Some(ret_ty), body),
-    "async" "fn" <id:"identifier"> "(" <params:ParamList> ")" <body:Block> =>
+    "async" "fn" <id:Identifier> "(" <params:ParamList> ")" <body:Block> =>
         ast::Decl::AsyncFunction(id, params, None, body),
-    "async" "fn" <id:"identifier"> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
+    "async" "fn" <id:Identifier> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
         ast::Decl::AsyncFunction(id, params, Some(ret_ty), body)
 };
 
@@ -148,17 +152,17 @@ pub ParamList: Vec<ast::Param> = {
 };
 
 Param: ast::Param = {
-    <id:"identifier"> ":" <ty:TypeExpr> =>
-        ast::Param { name: id, ty, is_mut: "false" },
-    "&" "mut" <id:"identifier"> ":" <ty:TypeExpr> =>
+    <id:Identifier> ":" <ty:TypeExpr> =>
+        ast::Param { name: id, ty, is_mut: false },
+    "&mut" <id:Identifier> ":" <ty:TypeExpr> =>
         ast::Param { name: id, ty, is_mut: true }
 };
 
 pub LetDecl: ast::Decl = {
-    "let" <id:"identifier"> "=" <e:Expr> ";" => ast::Decl::Let(id, None, e),
-    "let" <id:"identifier"> ":" <ty:TypeExpr> "=" <e:Expr> ";" => ast::Decl::Let(id, Some(ty), e),
-    "let" "mut" <id:"identifier"> "=" <e:Expr> ";" => ast::Decl::LetMut(id, None, e),
-    "let" "mut" <id:"identifier"> ":" <ty:TypeExpr> "=" <e:Expr> ";" => ast::Decl::LetMut(id, Some(ty), e)
+    "let" <id:Identifier> "=" <e:Expr> ";" => ast::Decl::Let(id, None, e),
+    "let" <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" => ast::Decl::Let(id, Some(ty), e),
+    "let" "mut" <id:Identifier> "=" <e:Expr> ";" => ast::Decl::LetMut(id, None, e),
+    "let" "mut" <id:Identifier> ":" <ty:TypeExpr> "=" <e:Expr> ";" => ast::Decl::LetMut(id, Some(ty), e)
 };
 
 pub Block: ast::Block = {
@@ -183,7 +187,7 @@ pub Statement: ast::Stmt = {
     "while" Expr Block => ast::Stmt::While(Expr, Block),
     "loop" <b:Block> => ast::Stmt::Loop(b),
     "break" ";" => ast::Stmt::Break,
-    "for" <id:"identifier"> "in" <e:Expr> <b:Block> => ast::Stmt::For(id, e, b)
+    "for" <id:Identifier> "in" <e:Expr> <b:Block> => ast::Stmt::For(id, e, b)
 };
 
 IfStmt: ast::IfStmt = {
@@ -215,33 +219,38 @@ MatchArm: ast::MatchArm = {
 };
 
 Pattern: ast::Pattern = {
-    "identifier" => ast::Pattern::Var("identifier"),
-    "int" => ast::Pattern::Number("int"),
-    "float" => ast::Pattern::Number("float"),
+    Identifier => ast::Pattern::Var(Identifier),
+    Number => ast::Pattern::Number(Number),
     "_" => ast::Pattern::Wildcard,
     "Some" "(" <p:Pattern> ")" => ast::Pattern::Some(Box::new(p)),
     "None" => ast::Pattern::None,
-    <variant:"identifier"> "(" <p:Pattern> ")" => ast::Pattern::Variant(variant, Box::new(p))
+    <variant:Identifier> "(" <p:Pattern> ")" => ast::Pattern::Variant(variant, Box::new(p))
+};
+
+Number: ast::Number = {
+    <n:r"-?[0-9]+\.[0-9]+"> => ast::Number::Float(n.parse::<f64>().unwrap()),
+    <n:r"-?[0-9]+"> => ast::Number::Int(n.parse::<i64>().unwrap())
 };
 
 pub TypeExpr: ast::TypeExpr = {
-    "int" => ast::TypeExpr::Int64,
-    "float" => ast::TypeExpr::Float64,
-    Bool => ast::TypeExpr::Bool,
+    "i64" => ast::TypeExpr::Int64,
+    "f64" => ast::TypeExpr::Float64,
+    "bool" => ast::TypeExpr::Bool,
     "string" => ast::TypeExpr::String,
-    <id:"identifier"> => ast::TypeExpr::Custom(id),
-    <id:"identifier"> "<" <types:TypeList> ">" => ast::TypeExpr::Generic(id, types),
+    <id:Identifier> => ast::TypeExpr::Custom(id),
+    <id:Identifier> "<" <types:TypeList> ">" => ast::TypeExpr::Generic(id, types),
     "(" <t:TypeExpr> ")" => t
 };
-
-Bool: ast::Bool = {
-    "true" => ast::TypeExpr::True,
-    "false" => ast::TypeExpr::False,
-}
 
 TypeList: Vec<ast::TypeExpr> = {
     <t:TypeExpr> => vec![t],
     <ts:TypeList> "," <t:TypeExpr> => { let mut v = ts; v.push(t); v }
+};
+
+
+
+String: String = {
+    <s: r#""([^"\\]|\\.)*""#> => s[1..s.len()-1].to_string()
 };
 
 ArgList: Vec<ast::Expr> = {
@@ -251,7 +260,7 @@ ArgList: Vec<ast::Expr> = {
 };
 
 StructLiteral: (String, Vec<(String, Expr)>) = {
-    <name:"identifier"> "{" <fields:FieldList> "}" => (name, fields)
+    <name:Identifier> "{" <fields:FieldList> "}" => (name, fields)
 };
 
 FieldList: Vec<(String, Expr)> = {
@@ -261,7 +270,7 @@ FieldList: Vec<(String, Expr)> = {
 };
 
 FieldInit: (String, Expr) = {
-    <id:"identifier"> ":" <e:Expr> => (id, e)
+    <id:Identifier> ":" <e:Expr> => (id, e)
 };
 
 
@@ -271,13 +280,13 @@ FieldInit: (String, Expr) = {
 
 //ParamNames: Vec<String> = {
 //    => vec![],
-//    <id:"identifier"> => vec![id],
-//    <ps:ParamNames> "," <id:"identifier"> => { let mut v = ps; v.push(id); v }
+//    <id:Identifier> => vec![id],
+//    <ps:ParamNames> "," <id:Identifier> => { let mut v = ps; v.push(id); v }
 //};
 
 //ExprAtom: ast::Expr = {
-//    "int" => ast::Expr::Number::Int("int"),
-//    "float" => ast::Expr::Number::Int("float"),
+//    NumberInt => ast::Expr::Number::Int(NumberInt),
+//    NumberFloat => ast::Expr::Number::Int(NumberInt),
 //    String => ast::Expr::String(String),
 //    "(" <e:Expr> ")" => e,
 //    MatchExpr => MatchExpr,
@@ -293,12 +302,12 @@ FieldInit: (String, Expr) = {
 //};
 
 Postfix: ast::Expr = {
-    <id:"identifier"> "(" <args:ArgList> ")" => ast::Expr::Call(id, args),
-    <id:"identifier"> => ast::Expr::Identifier(id),
+    <id:Identifier> "(" <args:ArgList> ")" => ast::Expr::Call(id, args),
+    <id:Identifier> => ast::Expr::Identifier(id),
 //    <p:Primary> => p,
-    <obj:Postfix> "." <method:"identifier"> "(" <args:ArgList> ")" =>
+    <obj:Postfix> "." <method:Identifier> "(" <args:ArgList> ")" =>
         ast::Expr::MethodCall(Box::new(obj), method, args),
-    <t:"identifier"> "::" <method:"identifier"> "(" <args:ArgList> ")" =>
+    <t:Identifier> "::" <method:Identifier> "(" <args:ArgList> ")" =>
         ast::Expr::AssocCall(t, method, args)
 };
 
@@ -323,74 +332,4 @@ pub Expr: ast::Expr = {
     <l:Expr> "<=" <r:Expr> => ast::Expr::LessEq(Box::new(l), Box::new(r)),
     <l:Expr> ">"  <r:Expr> => ast::Expr::Greater(Box::new(l), Box::new(r)),
     <l:Expr> ">=" <r:Expr> => ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
-}
-
-// LEXER DEFINITION
-extern {
-  type Location = usize;
-  type Error = LexicalError;
-
-  enum Token {
-    "let" => Token::Let,
-    "mut" => Token::Mut,
-    "fn" => Token::Fn,
-    "struct" => Token::Struct,
-    "enum" => Token::Enum,
-    "impl" => Token::Impl,
-    "async" => Token::Async,
-    "await" => Token::Await,
-    "if" => Token::If,
-    "else" => Token::Else,
-    "for" => Token::For,
-    "while" => Token::While,
-    "loop" => Token::Loop,
-    "break" => Token::Break,
-    "continue" => Token::Continue,
-    "return" => Token::Return,
-    "match" => Token::Match,
-    "Some" => Token::Some,
-    "None" => Token::None,
-    "Ok" => Token::Ok,
-    "Err" => Token::Err,
-    "use" => Token::Use,
-    "in" => Token::In,
-    "import" => Token::Import,
-    "trait" => Token::Trait,
-    "#derive" => Token::Derive,
-    "::" => Token::DoubleColon,
-    ":" => Token::Colon,
-    "." => Token::Dot,
-    ".." => Token::DotDot,
-    ";" => Token::Semi,
-    "," => Token::Comma,
-    "_" => Token::Underscore,
-    "=" => Token::Equals,
-    "+" => Token::Plus,
-    "-" => Token::Minus,
-    "*" => Token::Star,
-    "/" => Token::Slash,
-    "++" => Token::PlusPlus,
-    "|>" => Token::PipeForward,
-    "->" => Token::Arrow,
-    "=>" => Token::FatArrow,
-    "&" => Token::And,
-    "&&" => Token::AndAnd,
-    "||" => Token::OrOr,
-    "==" => Token::EqualEqual,
-    "!=" => Token::NotEqual,
-    "<=" => Token::LessEqual,
-    ">=" => Token::GreaterEqual,
-    "<" => Token::Less,
-    ">" => Token::Greater,
-    "(" => Token::LParen,
-    ")" => Token::RParen,
-    "{" => Token::LBrace,
-    "}" => Token::RBrace,
-    "int" => Token::Int(<i64>),
-    "float" => Token::Float(<f64>),
-    "string" => Token::Str(<String>),
-    "identifier" => Token::Identifier(<String>),
-    "true" => Token::Bool,
-    "false" => Token::Bool,
-  }
-}
+};
