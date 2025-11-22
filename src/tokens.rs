@@ -1,25 +1,12 @@
+use logos::Logos;
 use std::fmt;
-use std::num::{ParseIntError, ParseFloatError};
-logos::Logos;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub enum LexicalError {
-    InvalidInteger(ParseIntError),
-    InvalidFloat(ParseFloatError),
+    InvalidInteger(std::num::ParseIntError),
+    InvalidFloat(std::num::ParseFloatError),
     #[default]
     InvalidToken,
-}
-
-impl From<ParseIntError> for LexicalError {
-    fn from(err: ParseIntError) -> Self {
-        LexicalError::InvalidInteger(err)
-    }
-}
-
-impl From<ParseFloatError> for LExicalError {
-    fn from(err: ParseFloatError) -> Self {
-        LexicalError::InvalidFloat(err)
-    }
 }
 
 #[derive(Logos, Debug, PartialEq, Clone)]
@@ -49,7 +36,7 @@ pub enum Token {
     Loop,
     #[token("if")]
     If,
-    #[token("else"]
+    #[token("else")]
     Else,
     #[token("break")]
     Break,
@@ -75,7 +62,7 @@ pub enum Token {
     Import,
     #[token("#derive")]
     Derive,
-    #[token("trait"]
+    #[token("trait")]
     Trait,
     #[token("::")]
     DoubleColon,
@@ -103,11 +90,13 @@ pub enum Token {
     Slash,
     #[token("++")]
     PlusPlus,
+    #[token("|")]
+    Pipe,
     #[token("|>")]
     PipeForward,
-    #[arrow("->"]
+    #[token("->")]
     Arrow,
-    #[token("=>")
+    #[token("=>")]
     FatArrow,
     #[token("&")]
     And,
@@ -135,25 +124,25 @@ pub enum Token {
     LBrace,
     #[token("}")]
     RBrace,
-    #[regex(r"[0-9]+\\.[0-9]+", |lex| lex.slice().to_string())]
-    Int(i64),
-    #[regex(r"[0-9]+", |lex| lex.slice().parse::<i64>().ok())]
+    #[regex(r"[0-9]+\.[0-9]+", |lex| lex.slice().parse::<f64>().ok())]
     Float(f64),
-    #[regex(r#""([^"\\]|\\.)*""#, |lex| lex.slice().parse::<f64>().ok())]
+    #[regex(r"[0-9]+", |lex| lex.slice().parse::<i64>().ok())]
+    Int(i64),
+    #[regex(r#""([^"\\]|\\.)*""#, |lex| {
+        let s = lex.slice();
+        s[1..s.len()-1].to_string()
+    })]
     Str(String),
     #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", |lex| lex.slice().to_string())]
     Identifier(String),
-    #[token("true", |lex| lex.slice().parse::<Bool>())]
+    #[token("true")]
     True,
-    #[token("false", |lex| lex.slice().parse::<Bool>())]
+    #[token("false")]
     False,
-    #[error]
-    #[regex(r"[ \t\n\f]+", logos::skip)]
-    Error,
 }
 
 impl fmt::Display for Token {
-  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "{:?}", self)
-  }
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }

@@ -1,11 +1,12 @@
 [package]
 name = "cobblr"
 version = "0.1.0"
+authors = ["K Chase Harmer"]
 edition = "2021"
 
 [dependencies]
 logos = "0.13"
-lalrpop-util = { version = "0.20", features = ["lexer"] } 
+lalrpop-util = { version = "0.21", features = ["lexer","unicode"] } 
 
 [build-dependencies]
-lalrpop = "0.20"
+lalrpop = "0.22.2"

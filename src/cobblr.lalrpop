@@ -1,10 +1,25 @@
-use crate::ast::*;
-use std::str::FromStr;
+use crate::ast;
+use crate::ast::{
+    Program,
+    Decl,
+    Param,
+    StructMember,
+    TraitMethod,
+    Block,
+    Stmt,
+    IfStmt,
+    Expr,
+    Number,
+    MatchArm,
+    Pattern,
+    TypeExpr,
+};
+use crate::tokens::{Token, LexicalError};
 
 grammar;
 
 pub Program: ast::Program = {
-    Declarations => crate::ast::Program(Declarations)
+    <ds:Declarations> => crate::ast::Program(ds)
 };
 
 pub Declarations: Vec<ast::Decl> = {
@@ -17,14 +32,14 @@ pub Declarations: Vec<ast::Decl> = {
 };
 
 pub Declaration: ast::Decl = {
-    FunctionDecl => FunctionDecl,
-    StructDecl => StructDecl,
-    EnumDecl => EnumDecl,
-    TraitDecl => TraitDecl,
-    ImplDecl => ImplDecl,
-    LetDecl => LetDecl,
-    ImportDecl => ImportDecl,
-    DeriveAttrStruct => DeriveAttrStruct
+    <fd:FunctionDecl> => fd,
+    <sd:StructDecl> => sd,
+    <ed:EnumDecl> => ed,
+    <td:TraitDecl> => td,
+    <ip:ImplDecl> => ip,
+    <ld:LetDecl> => ld,
+    <id:ImportDecl> => id,
+    <da:DeriveAttrStruct> => da 
 };
 
 pub ImportDecl: ast::Decl = {
@@ -149,7 +164,7 @@ pub ParamList: Vec<ast::Param> = {
 
 Param: ast::Param = {
     <id:"identifier"> ":" <ty:TypeExpr> =>
-        ast::Param { name: id, ty, is_mut: "false" },
+        ast::Param { name: id, ty, is_mut: false },
     "&" "mut" <id:"identifier"> ":" <ty:TypeExpr> =>
         ast::Param { name: id, ty, is_mut: true }
 };
@@ -176,11 +191,11 @@ pub StatementList: Vec<ast::Stmt> = {
 };
 
 pub Statement: ast::Stmt = {
-    LetDecl => ast::Stmt::LetDecl(LetDecl),
-    Expr ";" => ast::Stmt::ExprStmt(Expr),
-    "return" Expr ";" => ast::Stmt::Return(Expr),
-    IfStmt => ast::Stmt::If(IfStmt),
-    "while" Expr Block => ast::Stmt::While(Expr, Block),
+    <ld:LetDecl> => ast::Stmt::LetDecl(ld),
+    <e:Expr> ";" => ast::Stmt::ExprStmt(e),
+    "return" <e:Expr> ";" => ast::Stmt::Return(e),
+    <is:IfStmt> => ast::Stmt::If(is),
+    "while" <e:Expr> <b:Block> => ast::Stmt::While(e, b),
     "loop" <b:Block> => ast::Stmt::Loop(b),
     "break" ";" => ast::Stmt::Break,
     "for" <id:"identifier"> "in" <e:Expr> <b:Block> => ast::Stmt::For(id, e, b)
@@ -215,28 +230,33 @@ MatchArm: ast::MatchArm = {
 };
 
 Pattern: ast::Pattern = {
-    "identifier" => ast::Pattern::Var("identifier"),
-    "int" => ast::Pattern::Number("int"),
-    "float" => ast::Pattern::Number("float"),
+    <id:"identifier"> => ast::Pattern::Var(id),
+    <i:"int"> => ast::Pattern::Number(ast::Number::Int(i)),
+    <f:"float"> => ast::Pattern::Number(ast::Number::Float(f)),
     "_" => ast::Pattern::Wildcard,
     "Some" "(" <p:Pattern> ")" => ast::Pattern::Some(Box::new(p)),
     "None" => ast::Pattern::None,
     <variant:"identifier"> "(" <p:Pattern> ")" => ast::Pattern::Variant(variant, Box::new(p))
 };
 
+BoolLit: bool = {
+    "true" => true,
+    "false" => false
+};
+
 pub TypeExpr: ast::TypeExpr = {
     "int" => ast::TypeExpr::Int64,
     "float" => ast::TypeExpr::Float64,
-    Bool => ast::TypeExpr::Bool,
     "string" => ast::TypeExpr::String,
+    BoolLit => ast::TypeExpr::Bool,    // or ast::TypeExpr::Bool(true) depending on your AST
     <id:"identifier"> => ast::TypeExpr::Custom(id),
     <id:"identifier"> "<" <types:TypeList> ">" => ast::TypeExpr::Generic(id, types),
     "(" <t:TypeExpr> ")" => t
 };
 
 Bool: ast::Bool = {
-    "true" => ast::TypeExpr::True,
-    "false" => ast::TypeExpr::False,
+    "true" => ast::Bool::True,
+    "false" => ast::Bool::False,
 }
 
 TypeList: Vec<ast::TypeExpr> = {
@@ -257,7 +277,7 @@ StructLiteral: (String, Vec<(String, Expr)>) = {
 FieldList: Vec<(String, Expr)> = {
     => vec![],
     <field:FieldInit> => vec![field],
-    <fields:FieldList> "," <field:FieldInit> => { let mut v = fields; v.push(field); }
+    <fields:FieldList> "," <field:FieldInit> => { let mut v = fields; v.push(field); v }
 };
 
 FieldInit: (String, Expr) = {
@@ -265,39 +285,38 @@ FieldInit: (String, Expr) = {
 };
 
 
-//Closure: ast::Expr = {
-//    "/" "|" <params:ParamNames> "|" <body:Expr> => ast::Expr::Closure(params, body),
-//};
+Closure: ast::Expr = {
+    "/" "|" <params:ParamNames> "|" <body:Expr> =>
+        ast::Expr::Closure(params, Box::new(body))
+};
 
-//ParamNames: Vec<String> = {
-//    => vec![],
-//    <id:"identifier"> => vec![id],
-//    <ps:ParamNames> "," <id:"identifier"> => { let mut v = ps; v.push(id); v }
-//};
+ParamNames: Vec<String> = {
+    => vec![],
+    <id:"identifier"> => vec![id],
+    <ps:ParamNames> "," <id:"identifier"> => {
+        let mut v = ps;
+        v.push(id);
+        v
+    }
+};
 
-//ExprAtom: ast::Expr = {
-//    "int" => ast::Expr::Number::Int("int"),
-//    "float" => ast::Expr::Number::Int("float"),
-//    String => ast::Expr::String(String),
-//    "(" <e:Expr> ")" => e,
-//    MatchExpr => MatchExpr,
-//    <lit:StructLiteral> => {
-//        let (name, fields) = lit;
-//        ast::Expr::StructLit(name, fields)
-//    }
-//};
-
-//Primary: ast::Expr = {
-//    Closure => Closure,
-//    <a:ExprAtom> => a
-//};
+ExprAtom: ast::Expr = {
+    <i:"int"> => ast::Expr::NumberInt(i),
+    <f:"float"> => ast::Expr::NumberFloat(f),
+    <s:"string"> => ast::Expr::String(s),
+    "(" <e:Expr> ")" => e,
+    <lit:StructLiteral> => {
+        let (name, fields) = lit;
+        ast::Expr::StructLit(name, fields)
+    },
+    <m:MatchExpr> => m,
+};
 
 Postfix: ast::Expr = {
+    <a:ExprAtom> => a,
+    <p:Postfix> "." <method:"identifier"> "(" <args:ArgList> ")" =>
+        ast::Expr::MethodCall(Box::new(p), method, args),
     <id:"identifier"> "(" <args:ArgList> ")" => ast::Expr::Call(id, args),
-    <id:"identifier"> => ast::Expr::Identifier(id),
-//    <p:Primary> => p,
-    <obj:Postfix> "." <method:"identifier"> "(" <args:ArgList> ")" =>
-        ast::Expr::MethodCall(Box::new(obj), method, args),
     <t:"identifier"> "::" <method:"identifier"> "(" <args:ArgList> ")" =>
         ast::Expr::AssocCall(t, method, args)
 };
@@ -323,6 +342,9 @@ pub Expr: ast::Expr = {
     <l:Expr> "<=" <r:Expr> => ast::Expr::LessEq(Box::new(l), Box::new(r)),
     <l:Expr> ">"  <r:Expr> => ast::Expr::Greater(Box::new(l), Box::new(r)),
     <l:Expr> ">=" <r:Expr> => ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
+
+    // Base case: a single postfix/atom expression
+    <p:Postfix> => p
 }
 
 // LEXER DEFINITION
@@ -370,6 +392,7 @@ extern {
     "*" => Token::Star,
     "/" => Token::Slash,
     "++" => Token::PlusPlus,
+    "|" => Token::Pipe,
     "|>" => Token::PipeForward,
     "->" => Token::Arrow,
     "=>" => Token::FatArrow,
@@ -390,7 +413,7 @@ extern {
     "float" => Token::Float(<f64>),
     "string" => Token::Str(<String>),
     "identifier" => Token::Identifier(<String>),
-    "true" => Token::Bool,
-    "false" => Token::Bool,
+    "true" => Token::True,
+    "false" => Token::False,
   }
 }

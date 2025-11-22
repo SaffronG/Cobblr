@@ -88,7 +88,8 @@ pub struct IfStmt {
 #[derive(Debug, Clone)]
 pub enum Expr {
     Identifier(String),
-    Number(Number),
+    NumberInt(i64),
+    NumberFloat(f64),
     String(String),
     Match {
         value: Box<Expr>,
@@ -143,6 +144,7 @@ pub enum TypeExpr {
     Int64,
     Int32,
     Float64,
+    Float32,
     Bool,
     String,
     Custom(String),
