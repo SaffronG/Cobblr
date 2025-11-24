@@ -286,65 +286,48 @@ FieldInit: (String, Expr) = {
 
 
 Closure: ast::Expr = {
-    "/" "|" <params:ParamNames> "|" <body:Expr> =>
+    "/" "|" <params:ParamList> "|" <body:Expr> =>
         ast::Expr::Closure(params, Box::new(body))
 };
 
-ParamNames: Vec<String> = {
-    => vec![],
-    <id:"identifier"> => vec![id],
-    <ps:ParamNames> "," <id:"identifier"> => {
-        let mut v = ps;
-        v.push(id);
-        v
-    }
-};
-
-ExprAtom: ast::Expr = {
-    <i:"int"> => ast::Expr::NumberInt(i),
-    <f:"float"> => ast::Expr::NumberFloat(f),
-    <s:"string"> => ast::Expr::String(s),
-    "(" <e:Expr> ")" => e,
-    <lit:StructLiteral> => {
-        let (name, fields) = lit;
-        ast::Expr::StructLit(name, fields)
-    },
-    <m:MatchExpr> => m,
-};
-
-Postfix: ast::Expr = {
-    <a:ExprAtom> => a,
-    <p:Postfix> "." <method:"identifier"> "(" <args:ArgList> ")" =>
-        ast::Expr::MethodCall(Box::new(p), method, args),
-    <id:"identifier"> "(" <args:ArgList> ")" => ast::Expr::Call(id, args),
-    <t:"identifier"> "::" <method:"identifier"> "(" <args:ArgList> ")" =>
-        ast::Expr::AssocCall(t, method, args)
-};
-
 pub Expr: ast::Expr = {
+    #[precedence(level="0")]
+    Postfix,
 
-    // Level 1: Multiplication / Division
     #[precedence(level="1")]
-    <l:Expr> "*" <r:Postfix> => ast::Expr::Mul(Box::new(l), Box::new(r)),
-    <l:Expr> "/" <r:Postfix> => ast::Expr::Div(Box::new(l), Box::new(r)),
+    #[assoc(side="left")]
+    <l:Expr> "*" <r:Expr> => ast::Expr::Mul(Box::new(l), Box::new(r)),
+    <l:Expr> "/" <r:Expr> => ast::Expr::Div(Box::new(l), Box::new(r)),
 
-    // Level 2: Addition / Subtraction / Concatenation (left-associative)
-    #[precedence(level="2")] #[assoc(side="left")]
+    #[precedence(level="2")]
+    #[assoc(side="left")]
     <l:Expr> "+" <r:Expr> => ast::Expr::Add(Box::new(l), Box::new(r)),
     <l:Expr> "-" <r:Expr> => ast::Expr::Sub(Box::new(l), Box::new(r)),
     <l:Expr> "++" <r:Expr> => ast::Expr::Concat(Box::new(l), Box::new(r)),
 
-    // Level 3: Comparisons (non-associative)
-    #[precedence(level="3")] #[assoc(side="left")]
+    #[precedence(level="3")]
+    #[assoc(side="left")]
     <l:Expr> "==" <r:Expr> => ast::Expr::Equal(Box::new(l), Box::new(r)),
     <l:Expr> "!=" <r:Expr> => ast::Expr::NotEqual(Box::new(l), Box::new(r)),
     <l:Expr> "<"  <r:Expr> => ast::Expr::Less(Box::new(l), Box::new(r)),
     <l:Expr> "<=" <r:Expr> => ast::Expr::LessEq(Box::new(l), Box::new(r)),
     <l:Expr> ">"  <r:Expr> => ast::Expr::Greater(Box::new(l), Box::new(r)),
     <l:Expr> ">=" <r:Expr> => ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
+}
 
-    // Base case: a single postfix/atom expression
-    <p:Postfix> => p
+Postfix: ast::Expr = {
+    <p:Primary> => p,
+    <l:Postfix> "::" <id:"identifier"> => ast::Expr::FieldAccess(Box::new(l), id),
+    <l:Postfix> "(" <args:ArgList> ")" => ast::Expr::Call(Box::new(l), args),
+    <l:Postfix> "[" <idx:Expr> "]" => ast::Expr::Index(Box::new(l), Box::new(idx)),
+}
+
+Primary: ast::Expr = {
+    <n:"int"> => ast::Expr::NumberInt(n),
+    <f:"float"> => ast::Expr::NumberFloat(f),
+    <s:"string"> => ast::Expr::String(s),
+    <id:"identifier"> => ast::Expr::Identifier(id),
+    "(" <e:Expr> ")" => e
 }
 
 // LEXER DEFINITION
@@ -409,6 +392,8 @@ extern {
     ")" => Token::RParen,
     "{" => Token::LBrace,
     "}" => Token::RBrace,
+    "[" => Token::LBrack,
+    "]" => Token::RBrack,
     "int" => Token::Int(<i64>),
     "float" => Token::Float(<f64>),
     "string" => Token::Str(<String>),

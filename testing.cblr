@@ -1,0 +1,8 @@
+fn add(l:i32, r:i32) -> i32 {
+    l + r
+}
+
+fn main() -> i32 {
+    let sum: i32 = add(1,2);
+    sum
+}

@@ -95,17 +95,23 @@ pub enum Expr {
         value: Box<Expr>,
         arms: Vec<MatchArm>,
     },
-    Call(String, Vec<Expr>),
+    Call(Box<Expr>, Vec<Expr>),
     AssocCall(String, String, Vec<Expr>),
     MethodCall(Box<Expr>, String, Vec<Expr>),
     StructLit(String, Vec<(String, Expr)>),
-    Closure(Vec<String>, Box<Expr>),
+    Closure(Vec<Param>, Box<Expr>),
 
-    // Binary operations
+    // Postfix accesor operations
+    Index(Box<Expr>, Box<Expr>),
+    FieldAccess(Box<Expr>, String),
+
+    // Binary infix operations
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
+
+    // Binary operations
     Concat(Box<Expr>, Box<Expr>),
 
     // Comparison
