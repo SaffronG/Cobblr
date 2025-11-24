@@ -139,6 +139,7 @@ pub enum Token {
     True,
     #[token("false")]
     False,
+    Error,
 }
 
 impl fmt::Display for Token {

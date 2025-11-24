@@ -1,4 +1,4 @@
-use crate::tokens::{LexicalError, Token};
+use crate::tokens::Token;
 use logos::Logos;
 
 /// A tuple of (start, token, end)
@@ -17,12 +17,12 @@ impl<'input> Lexer<'input> {
 }
 
 impl<'input> Iterator for Lexer<'input> {
-    type Item = (usize, Result<Token, LexicalError>, usize);
+    type Item = (usize, Token, usize);
 
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|(tok, span)| match tok {
-            Ok(token) => (span.start, Ok(token), span.end),
-            Err(_) => (span.start, Err(LexicalError::InvalidToken), span.end),
+            Ok(token) => (span.start, token, span.end),
+            Err(_) => (span.start, Token::Error, span.end),
         })
     }
 }
