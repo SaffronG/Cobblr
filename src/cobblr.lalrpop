@@ -81,9 +81,9 @@ StructBody: Vec<ast::StructMember> = {
 };
 
 StructMember: ast::StructMember = {
-    <id:"identifier"> ":" <ty:TypeExpr> ";" =>
+    <id:"identifier"> ":" <ty:TypeExpr> "," =>
         ast::StructMember::field(id, ty),
-    <id:"identifier"> ":" <ty:TypeExpr> "=" <e:Expr> ";" =>
+    <id:"identifier"> ":" <ty:TypeExpr> "=" <e:Expr> "," =>
         ast::StructMember::field_init(id, ty, e)
 };
 
@@ -284,12 +284,6 @@ FieldInit: (String, Expr) = {
     <id:"identifier"> ":" <e:Expr> => (id, e)
 };
 
-
-Closure: ast::Expr = {
-    "/" "|" <params:ParamList> "|" <body:Expr> =>
-        ast::Expr::Closure(params, Box::new(body))
-};
-
 pub Expr: ast::Expr = {
     #[precedence(level="0")]
     Postfix,
@@ -316,10 +310,17 @@ pub Expr: ast::Expr = {
 }
 
 Postfix: ast::Expr = {
-    <p:Primary> => p,
+    Atom,
     <l:Postfix> "::" <id:"identifier"> => ast::Expr::FieldAccess(Box::new(l), id),
     <l:Postfix> "(" <args:ArgList> ")" => ast::Expr::Call(Box::new(l), args),
     <l:Postfix> "[" <idx:Expr> "]" => ast::Expr::Index(Box::new(l), Box::new(idx)),
+}
+
+Atom: ast::Expr = {
+    "|" <params:ParamList> "|" <body:Expr> "end" => ast::Expr::Closure(params, Box::new(body)),
+    //<s:StructLiteral> => ast::ExprStructLiteral(s.0, s.1),
+    //MatchExpr,
+    Primary,
 }
 
 Primary: ast::Expr = {
@@ -361,6 +362,7 @@ extern {
     "in" => Token::In,
     "import" => Token::Import,
     "trait" => Token::Trait,
+    "end" => Token::End,
     "#derive" => Token::Derive,
     "::" => Token::DoubleColon,
     ":" => Token::Colon,

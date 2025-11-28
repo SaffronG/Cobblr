@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cobblr Language Tutorial – Full Feature Showcase</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f7f7fb;
+      color: #222;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #4b59f7;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    main {
+      max-width: 900px;
+      margin: auto;
+      padding: 2rem;
+    }
+    h1, h2, h3 {
+      color: #4b59f7;
+    }
+    section {
+      margin-bottom: 3rem;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    pre {
+      background: #272822;
+      color: #f8f8f2;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      line-height: 1.4;
+    }
+    code { font-family: "JetBrains Mono", monospace; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    nav a {
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      background: #eef0ff;
+      border-radius: 6px;
+      color: #4b59f7;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cobblr Language Tutorial</h1>
+    <p>Complete Feature Guide + CST Expansion</p>
+  </header>
+
+  <main>
+    <nav>
+      <a href="#imports">Imports</a>
+      <a href="#structs">Structs & Defaults</a>
+      <a href="#impls">Impl Blocks</a>
+      <a href="#async">Async Functions</a>
+      <a href="#hof">Higher‑Order Functions</a>
+      <a href="#control">Control Flow</a>
+      <a href="#match">Match Expressions</a>
+      <a href="#examples">Full Feature Example</a>
+    </nav>
+
+    <section id="imports">
+      <h2>Imports</h2>
+      <p>Cobblr supports Rust‑style module imports:</p>
+      <pre><code>use std::io;
+use math::range;</code></pre>
+    </section>
+
+    <section id="structs">
+      <h2>Structs, Fields & Default Values</h2>
+      <pre><code>#derive(Debug, Clone)
+struct Point {
+    x: f64,
+    y: f64,
+}
+
+struct Rectangle {
+    width: f64 = 10.0,
+    height: f64 = 20.0,
+}</code></pre>
+    </section>
+
+    <section id="impls">
+      <h2>Impl Blocks & Methods</h2>
+      <p>Methods support mutability, field access, and updates:</p>
+      <pre><code>impl Point {
+    fn translate(&mut self, dx: f64, dy: f64) {
+        self.x += dx;
+        self.y += dy;
+    }
+}
+
+impl Rectangle {
+    fn area(&self) -> f64 {
+        self.width * self.height
+    }
+}</code></pre>
+    </section>
+
+    <section id="async">
+      <h2>Async Functions & Result Types</h2>
+      <pre><code>async fn fetch_data(url: String) -> Result<String, String> {
+    if url == "ok" {
+        Ok("data".into())
+    } else {
+        Err("failed".into())
+    }
+}</code></pre>
+    </section>
+
+    <section id="hof">
+      <h2>Higher‑Order Functions: map & filter</h2>
+      <pre><code>fn map_example(nums: Vec<i32>) -> Vec<i32> {
+    nums.map(|n| n * 2)
+}
+
+fn filter_example(nums: Vec<i32>) -> Vec<i32> {
+    nums.filter(|n| n % 2 == 0)
+}</code></pre>
+    </section>
+
+    <section id="control">
+      <h2>Control Flow</h2>
+      <pre><code>while counter < 5 {
+    counter++;
+}
+
+loop {
+    break;
+}
+
+for i in 0..10 {
+    counter += i;
+}</code></pre>
+    </section>
+
+    <section id="match">
+      <h2>Match Expressions</h2>
+      <pre><code>match response {
+    Ok(data) => {
+        println("Fetched: " ++ data);
+    },
+    Err(err) => {
+        println("Error: " ++ err);
+    }
+}
+
+match maybe_value {
+    Some(val) => println("Value: " ++ val),
+    None => println("No value"),
+}</code></pre>
+    </section>
+
+    <section id="examples">
+      <h2>Full Program Using All Features</h2>
+      <pre><code>fn main() {
+    let mut counter: i32 = 0;
+    let points: Vec<Point> = vec![
+        Point::new(1.0, 2.0),
+        Point::new(3.0, 4.0),
+    ];
+
+    while counter < 5 {
+        counter++;
+    }
+
+    loop {
+        break;
+    }
+
+    for i in 0..10 {
+        counter += i;
+    }
+
+    let response: Result<String, String> = fetch_data("ok".into());
+    match response {
+        Ok(data) => { println("Fetched: " ++ data); },
+        Err(err) => { println("Error: " ++ err); }
+    }
+
+    let maybe_value: Option<i32> = Some(42);
+    match maybe_value {
+        Some(val) => println("Value: " ++ val),
+        None => println("No value"),
+    }
+
+    let numbers: Vec<i32> = vec![1,2,3,4,5];
+    let doubled = map_example(numbers);
+    let evens = filter_example(doubled);
+
+    let mut rect = Rectangle { width: 15.0, height: 25.0 };
+    println("Area: " ++ rect.area());
+
+    let mut p = Point::new(10.0, 20.0);
+    p.translate(5.0, -3.0);
+    println("Point: " ++ p.x ++ ", " ++ p.y);
+}</code></pre>
+    </section>
+
+  </main>
+</body>
+</html>

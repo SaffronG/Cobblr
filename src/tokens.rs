@@ -40,6 +40,8 @@ pub enum Token {
     Else,
     #[token("break")]
     Break,
+    #[token("end")]
+    End,
     #[token("continue")]
     Continue,
     #[token("return")]

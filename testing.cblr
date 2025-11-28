@@ -3,6 +3,7 @@ fn add(l:i32, r:i32) -> i32 {
 }
 
 fn main() -> i32 {
+    let transform = (| n: int, m: int | n * m end);
     let sum: i32 = add(1,2);
     sum
 }

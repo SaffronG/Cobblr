@@ -1,272 +1,1372 @@
-    Checking cobblr v0.1.0 (/home/chase/Repositories/Cobblr)
-error: expected one of `!` or `::`, found `;`
- --> src/tokens.rs:3:13
-  |
-3 | logos::Logos;
-  |             ^ expected one of `!` or `::`
+   Compiling cobblr v0.1.0 (/home/chase/Repositories/Cobblr)
+error: failed to run custom build command for `cobblr v0.1.0 (/home/chase/Repositories/Cobblr)`
 
-error[E0425]: cannot find value `LetDecl` in this scope
-     --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:99676:24
-      |
-99676 |     ast::Stmt::LetDecl(LetDecl)
-      |                        ^^^^^^^ not found in this scope
-      |
-help: consider importing one of these tuple variants
-      |
-3     + use crate::cobblr::Stmt::LetDecl;
-      |
-3     + use crate::cst::CStmt::LetDecl;
-      |
+Caused by:
+  process didn't exit successfully: `/home/chase/Repositories/Cobblr/target/debug/build/cobblr-611520d7b4f27eb9/build-script-build` (exit status: 101)
+  --- stdout
+  cargo:rerun-if-changed=src/cobblr.lalrpop
+  Building grammar file...
+  processing file `/home/chase/Repositories/Cobblr/src/cobblr.lalrpop`
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:291:5: 291:8: Ambiguous grammar detected
 
-error[E0423]: expected value, found enum `Expr`
-     --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:99686:25
-      |
-99686 |     ast::Stmt::ExprStmt(Expr)
-      |                         ^^^^
-      |
-note: the enum is defined here
-     --> src/ast.rs:89:1
-      |
-89    | / pub enum Expr {
-90    | |     Identifier(String),
-91    | |     Number(Number),
-92    | |     String(String),
-...     |
-116   | |     GreaterEq(Box<Expr>, Box<Expr>),
-117   | | }
-      | |_^
-help: the following enum variants are available
-      |
-99686 -     ast::Stmt::ExprStmt(Expr)
-99686 +     ast::Stmt::ExprStmt((cobblr::Expr::Add(/* fields */)))
-      |
-99686 -     ast::Stmt::ExprStmt(Expr)
-99686 +     ast::Stmt::ExprStmt((cobblr::Expr::AssocCall(/* fields */)))
-      |
-99686 -     ast::Stmt::ExprStmt(Expr)
-99686 +     ast::Stmt::ExprStmt((cobblr::Expr::Call(/* fields */)))
-      |
-99686 -     ast::Stmt::ExprStmt(Expr)
-99686 +     ast::Stmt::ExprStmt((cobblr::Expr::Closure(/* fields */)))
-      |
-        and 15 other candidates
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr1 "*" Expr0
 
-error[E0423]: expected value, found enum `Expr`
-     --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:99697:23
-      |
-99697 |     ast::Stmt::Return(Expr)
-      |                       ^^^^
-      |
-note: the enum is defined here
-     --> src/ast.rs:89:1
-      |
-89    | / pub enum Expr {
-90    | |     Identifier(String),
-91    | |     Number(Number),
-92    | |     String(String),
-...     |
-116   | |     GreaterEq(Box<Expr>, Box<Expr>),
-117   | | }
-      | |_^
-help: the following enum variants are available
-      |
-99697 -     ast::Stmt::Return(Expr)
-99697 +     ast::Stmt::Return((cobblr::Expr::Add(/* fields */)))
-      |
-99697 -     ast::Stmt::Return(Expr)
-99697 +     ast::Stmt::Return((cobblr::Expr::AssocCall(/* fields */)))
-      |
-99697 -     ast::Stmt::Return(Expr)
-99697 +     ast::Stmt::Return((cobblr::Expr::Call(/* fields */)))
-      |
-99697 -     ast::Stmt::Return(Expr)
-99697 +     ast::Stmt::Return((cobblr::Expr::Closure(/* fields */)))
-      |
-        and 15 other candidates
+    They could be reduced like so:
+      "|" ParamList "|" Expr1   ╷ "*" Expr0
+      │                 ├─Expr2─┤         │
+      │                 └─Expr──┤         │
+      ├─Postfix─────────────────┤         │
+      ├─Expr0───────────────────┤         │
+      ├─Expr1───────────────────┘         │
+      └─Expr1─────────────────────────────┘
 
-error[E0423]: expected value, found struct `IfStmt`
-     --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:99706:19
-      |
-99706 |       ast::Stmt::If(IfStmt)
-      |                     ^^^^^^ help: use struct literal syntax instead: `IfStmt { cond: val, then_branch: val, else_branch: val }`
-      |
-     ::: src/ast.rs:82:1
-      |
-82    | / pub struct IfStmt {
-83    | |     pub cond: Box<Expr>,
-84    | |     pub then_branch: Block,
-85    | |     pub else_branch: Option<Block>,
-86    | | }
-      | |_- `IfStmt` defined here
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr1 "*" Expr0
+      │                 ├─Expr1───────┤
+      │                 ├─Expr2───────┤
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
 
-error[E0423]: expected value, found enum `Expr`
-     --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:99717:22
-      |
-99717 |     ast::Stmt::While(Expr, Block)
-      |                      ^^^^
-      |
-note: the enum is defined here
-     --> src/ast.rs:89:1
-      |
-89    | / pub enum Expr {
-90    | |     Identifier(String),
-91    | |     Number(Number),
-92    | |     String(String),
-...     |
-116   | |     GreaterEq(Box<Expr>, Box<Expr>),
-117   | | }
-      | |_^
-help: the following enum variants are available
-      |
-99717 -     ast::Stmt::While(Expr, Block)
-99717 +     ast::Stmt::While((cobblr::Expr::Add(/* fields */)), Block)
-      |
-99717 -     ast::Stmt::While(Expr, Block)
-99717 +     ast::Stmt::While((cobblr::Expr::AssocCall(/* fields */)), Block)
-      |
-99717 -     ast::Stmt::While(Expr, Block)
-99717 +     ast::Stmt::While((cobblr::Expr::Call(/* fields */)), Block)
-      |
-99717 -     ast::Stmt::While(Expr, Block)
-99717 +     ast::Stmt::While((cobblr::Expr::Closure(/* fields */)), Block)
-      |
-        and 15 other candidates
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
 
-error[E0423]: expected value, found struct `Block`
-     --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:99717:28
-      |
-99717 |       ast::Stmt::While(Expr, Block)
-      |                              ^^^^^ help: use struct literal syntax instead: `Block { statements: val, implicit_return: val }`
-      |
-     ::: src/ast.rs:64:1
-      |
-64    | / pub struct Block {
-65    | |     pub statements: Vec<Stmt>,
-66    | |     pub implicit_return: Option<Expr>,
-67    | | }
-      | |_- `Block` defined here
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:291:5: 291:8: Ambiguous grammar detected
 
-error[E0425]: cannot find value `MatchExpr` in this scope
-      --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:100224:5
-       |
-100224 |     MatchExpr
-       |     ^^^^^^^^^ not found in this scope
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr1 "/" Expr0
 
-warning: unused imports: `Decl`, `MatchArm`, `Number`, `Param`, `Pattern`, `Program`, `Stmt`, `StructMember`, and `TraitMethod`
-  --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:5:5
-   |
-5  |     Program,
-   |     ^^^^^^^
-6  |     Decl,
-   |     ^^^^
-7  |     Param,
-   |     ^^^^^
-8  |     StructMember,
-   |     ^^^^^^^^^^^^
-9  |     TraitMethod,
-   |     ^^^^^^^^^^^
-10 |     Block,
-11 |     Stmt,
-   |     ^^^^
-...
-14 |     Number,
-   |     ^^^^^^
-15 |     MatchArm,
-   |     ^^^^^^^^
-16 |     Pattern,
-   |     ^^^^^^^
-   |
-   = note: `#[warn(unused_imports)]` on by default
+    They could be reduced like so:
+      "|" ParamList "|" Expr1   ╷ "/" Expr0
+      │                 ├─Expr2─┤         │
+      │                 └─Expr──┤         │
+      ├─Postfix─────────────────┤         │
+      ├─Expr0───────────────────┤         │
+      ├─Expr1───────────────────┘         │
+      └─Expr1─────────────────────────────┘
 
-warning: unused import: `std::str::FromStr`
-  --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:19:5
-   |
-19 | use std::str::FromStr;
-   |     ^^^^^^^^^^^^^^^^^
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr1 "/" Expr0
+      │                 ├─Expr1───────┤
+      │                 ├─Expr2───────┤
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
 
-error[E0271]: type mismatch resolving `<Decl as TryFrom<Box<CDecl>>>::Error == CstError`
-   --> src/cst.rs:474:61
-    |
-474 |             CStmt::LetDecl(boxed) => Ok(Stmt::LetDecl(boxed.try_into()?)),
-    |                                                             ^^^^^^^^ expected `CstError`, found `Infallible`
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
 
-error[E0277]: the trait bound `ast::Decl: TryFrom<Box<CDecl>>` is not satisfied
-   --> src/cst.rs:474:61
-    |
-474 |             CStmt::LetDecl(boxed) => Ok(Stmt::LetDecl(boxed.try_into()?)),
-    |                                                             ^^^^^^^^ the trait `From<Box<CDecl>>` is not implemented for `ast::Decl`
-    |
-    = note: required for `Box<CDecl>` to implement `Into<ast::Decl>`
-    = note: required for `ast::Decl` to implement `TryFrom<Box<CDecl>>`
-    = note: required for `Box<CDecl>` to implement `TryInto<ast::Decl>`
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:291:5: 291:8: Ambiguous grammar detected
 
-error[E0271]: type mismatch resolving `<Expr as TryFrom<Box<CExpr>>>::Error == CstError`
-   --> src/cst.rs:492:35
-    |
-492 |             cond: Box::new(c.cond.try_into()?),
-    |                                   ^^^^^^^^ expected `CstError`, found `Infallible`
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr2 "+" Expr1
 
-error[E0277]: the trait bound `ast::Expr: TryFrom<Box<CExpr>>` is not satisfied
-   --> src/cst.rs:492:35
-    |
-492 |             cond: Box::new(c.cond.try_into()?),
-    |                                   ^^^^^^^^ the trait `From<Box<CExpr>>` is not implemented for `ast::Expr`
-    |
-    = note: required for `Box<CExpr>` to implement `Into<ast::Expr>`
-    = note: required for `ast::Expr` to implement `TryFrom<Box<CExpr>>`
-    = note: required for `Box<CExpr>` to implement `TryInto<ast::Expr>`
+    They could be reduced like so:
+      "|" ParamList "|" Expr2  ╷ "+" Expr1
+      │                 └─Expr─┤         │
+      ├─Postfix────────────────┤         │
+      ├─Expr0──────────────────┤         │
+      ├─Expr1──────────────────┤         │
+      ├─Expr2──────────────────┘         │
+      └─Expr2────────────────────────────┘
 
-error[E0599]: no variant or associated item named `True` found for enum `ast::TypeExpr` in the current scope
-      --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:100006:20
-       |
-100006 |     ast::TypeExpr::True
-       |                    ^^^^ variant or associated item not found in `TypeExpr`
-       |
-      ::: src/ast.rs:142:1
-       |
-142    | pub enum TypeExpr {
-       | ----------------- variant or associated item `True` not found for this enum
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr2 "+" Expr1
+      │                 ├─Expr2───────┤
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
 
-error[E0599]: no variant or associated item named `False` found for enum `ast::TypeExpr` in the current scope
-      --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:100015:20
-       |
-100015 |     ast::TypeExpr::False
-       |                    ^^^^^ variant or associated item not found in `TypeExpr`
-       |
-      ::: src/ast.rs:142:1
-       |
-142    | pub enum TypeExpr {
-       | ----------------- variant or associated item `False` not found for this enum
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
 
-error[E0599]: no variant or associated item named `NumberInt` found for enum `ast::Expr` in the current scope
-      --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:100174:16
-       |
-100174 |     ast::Expr::NumberInt(i)
-       |                ^^^^^^^^^ variant or associated item not found in `ast::Expr`
-       |
-      ::: src/ast.rs:89:1
-       |
-89     | pub enum Expr {
-       | ------------- variant or associated item `NumberInt` not found for this enum
-       |
-help: there is a variant with a similar name
-       |
-100174 -     ast::Expr::NumberInt(i)
-100174 +     ast::Expr::Number(i)
-       |
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:291:5: 291:8: Ambiguous grammar detected
 
-error[E0599]: no variant or associated item named `NumberFloat` found for enum `ast::Expr` in the current scope
-      --> /home/chase/Repositories/Cobblr/target/debug/build/cobblr-1ddef4fc7ee4f390/out/cobblr.rs:100183:16
-       |
-100183 |     ast::Expr::NumberFloat(f)
-       |                ^^^^^^^^^^^ variant or associated item not found in `ast::Expr`
-       |
-      ::: src/ast.rs:89:1
-       |
-89     | pub enum Expr {
-       | ------------- variant or associated item `NumberFloat` not found for this enum
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr2 "++" Expr1
 
-Some errors have detailed explanations: E0271, E0277, E0423, E0425, E0599.
-For more information about an error, try `rustc --explain E0271`.
-warning: `cobblr` (bin "cobblr") generated 2 warnings
-error: could not compile `cobblr` (bin "cobblr") due to 16 previous errors; 2 warnings emitted
+    They could be reduced like so:
+      "|" ParamList "|" Expr2  ╷ "++" Expr1
+      │                 └─Expr─┤          │
+      ├─Postfix────────────────┤          │
+      ├─Expr0──────────────────┤          │
+      ├─Expr1──────────────────┤          │
+      ├─Expr2──────────────────┘          │
+      └─Expr2─────────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr2 "++" Expr1
+      │                 ├─Expr2────────┤
+      │                 └─Expr─────────┤
+      └─Postfix────────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:291:5: 291:8: Ambiguous grammar detected
+
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr2 "-" Expr1
+
+    They could be reduced like so:
+      "|" ParamList "|" Expr2  ╷ "-" Expr1
+      │                 └─Expr─┤         │
+      ├─Postfix────────────────┤         │
+      ├─Expr0──────────────────┤         │
+      ├─Expr1──────────────────┤         │
+      ├─Expr2──────────────────┘         │
+      └─Expr2────────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr2 "-" Expr1
+      │                 ├─Expr2───────┤
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:316:1: 316:7: Conflict detected
+
+      when in this state:
+    Postfix = Postfix0 (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"("` we can reduce to a `Postfix` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:316:1: 316:7: Conflict detected
+
+      when in this state:
+    Postfix = Postfix0 (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"::"` we can reduce to a `Postfix` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:316:1: 316:7: Conflict detected
+
+      when in this state:
+    Postfix = Postfix0 (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 (*) "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"["` we can reduce to a `Postfix` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:156:5: 156:13: Conflict detected
+
+      when in this state:
+    Param = (*) "&" "mut" "identifier" ":" TypeExpr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Param = (*) "identifier" ":" TypeExpr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ParamList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ParamList = (*) Param ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ParamList = (*) ParamList "," Param ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = "|" (*) ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"&"` we can reduce to a `ParamList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:156:5: 156:13: Conflict detected
+
+      when in this state:
+    Param = (*) "&" "mut" "identifier" ":" TypeExpr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Param = (*) "identifier" ":" TypeExpr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ParamList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ParamList = (*) Param ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ParamList = (*) ParamList "," Param ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = "|" (*) ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"identifier"` we can reduce to a `ParamList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:268:5: 268:13: Conflict detected
+
+      when in this state:
+    ArgList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) ArgList "," Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr0 = (*) Postfix ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "+" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "++" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "-" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) Postfix0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) "|" ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 "(" (*) ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Primary ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "(" Expr ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "float" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "int" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "string" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"("` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:268:5: 268:13: Conflict detected
+
+      when in this state:
+    ArgList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) ArgList "," Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr0 = (*) Postfix ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "+" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "++" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "-" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) Postfix0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) "|" ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 "(" (*) ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Primary ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "(" Expr ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "float" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "int" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "string" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"float"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:268:5: 268:13: Conflict detected
+
+      when in this state:
+    ArgList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) ArgList "," Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr0 = (*) Postfix ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "+" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "++" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "-" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) Postfix0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) "|" ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 "(" (*) ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Primary ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "(" Expr ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "float" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "int" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "string" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"identifier"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:268:5: 268:13: Conflict detected
+
+      when in this state:
+    ArgList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) ArgList "," Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr0 = (*) Postfix ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "+" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "++" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "-" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) Postfix0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) "|" ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 "(" (*) ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Primary ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "(" Expr ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "float" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "int" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "string" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"int"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:268:5: 268:13: Conflict detected
+
+      when in this state:
+    ArgList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) ArgList "," Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr0 = (*) Postfix ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "+" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "++" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "-" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) Postfix0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) "|" ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 "(" (*) ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Primary ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "(" Expr ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "float" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "int" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "string" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"string"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:268:5: 268:13: Conflict detected
+
+      when in this state:
+    ArgList = (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) ArgList "," Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    ArgList = (*) Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = (*) Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr0 = (*) Postfix ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = (*) Expr1 "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "+" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "++" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = (*) Expr2 "-" Expr1 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) Postfix0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix = (*) "|" ParamList "|" Expr ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "(" ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = Postfix0 "(" (*) ArgList ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "::" "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Postfix0 "[" Expr "]" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Postfix0 = (*) Primary ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "(" Expr ")" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "float" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "identifier" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "int" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Primary = (*) "string" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"|"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:309:5: 309:75: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "!=" Expr2
+    At that point, if the next token is a `"+"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:309:5: 309:75, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "!=" Expr2 "+" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"+"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "!=" Expr2 "+" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:309:5: 309:75: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "!=" Expr2
+    At that point, if the next token is a `"++"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:309:5: 309:75, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "!=" Expr2 "++" Expr1
+      │                 └─Expr────────┤          │
+      ├─Postfix───────────────────────┤          │
+      ├─Expr0─────────────────────────┤          │
+      ├─Expr1─────────────────────────┤          │
+      ├─Expr2─────────────────────────┘          │
+      └─Expr2────────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"++"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "!=" Expr2 "++" Expr1
+      │         └─Expr2────────┤
+      └─Expr───────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:309:5: 309:75: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "!=" Expr2
+    At that point, if the next token is a `"-"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:309:5: 309:75, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "!=" Expr2 "-" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"-"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "!=" Expr2 "-" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:310:5: 310:71: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "<" Expr2
+    At that point, if the next token is a `"+"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:310:5: 310:71, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "<" Expr2 "+" Expr1
+      │                 └─Expr───────┤         │
+      ├─Postfix──────────────────────┤         │
+      ├─Expr0────────────────────────┤         │
+      ├─Expr1────────────────────────┤         │
+      ├─Expr2────────────────────────┘         │
+      └─Expr2──────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"+"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "<" Expr2 "+" Expr1
+      │        └─Expr2───────┤
+      └─Expr─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:310:5: 310:71: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "<" Expr2
+    At that point, if the next token is a `"++"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:310:5: 310:71, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "<" Expr2 "++" Expr1
+      │                 └─Expr───────┤          │
+      ├─Postfix──────────────────────┤          │
+      ├─Expr0────────────────────────┤          │
+      ├─Expr1────────────────────────┤          │
+      ├─Expr2────────────────────────┘          │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"++"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "<" Expr2 "++" Expr1
+      │        └─Expr2────────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:310:5: 310:71: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "<" Expr2
+    At that point, if the next token is a `"-"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:310:5: 310:71, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "<" Expr2 "-" Expr1
+      │                 └─Expr───────┤         │
+      ├─Postfix──────────────────────┤         │
+      ├─Expr0────────────────────────┤         │
+      ├─Expr1────────────────────────┤         │
+      ├─Expr2────────────────────────┘         │
+      └─Expr2──────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"-"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "<" Expr2 "-" Expr1
+      │        └─Expr2───────┤
+      └─Expr─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:311:5: 311:73: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "<=" Expr2
+    At that point, if the next token is a `"+"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:311:5: 311:73, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "<=" Expr2 "+" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"+"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "<=" Expr2 "+" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:311:5: 311:73: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "<=" Expr2
+    At that point, if the next token is a `"++"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:311:5: 311:73, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "<=" Expr2 "++" Expr1
+      │                 └─Expr────────┤          │
+      ├─Postfix───────────────────────┤          │
+      ├─Expr0─────────────────────────┤          │
+      ├─Expr1─────────────────────────┤          │
+      ├─Expr2─────────────────────────┘          │
+      └─Expr2────────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"++"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "<=" Expr2 "++" Expr1
+      │         └─Expr2────────┤
+      └─Expr───────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:311:5: 311:73: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "<=" Expr2
+    At that point, if the next token is a `"-"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:311:5: 311:73, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "<=" Expr2 "-" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"-"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "<=" Expr2 "-" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:308:5: 308:72: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "==" Expr2
+    At that point, if the next token is a `"+"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:308:5: 308:72, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "==" Expr2 "+" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"+"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "==" Expr2 "+" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:308:5: 308:72: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "==" Expr2
+    At that point, if the next token is a `"++"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:308:5: 308:72, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "==" Expr2 "++" Expr1
+      │                 └─Expr────────┤          │
+      ├─Postfix───────────────────────┤          │
+      ├─Expr0─────────────────────────┤          │
+      ├─Expr1─────────────────────────┤          │
+      ├─Expr2─────────────────────────┘          │
+      └─Expr2────────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"++"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "==" Expr2 "++" Expr1
+      │         └─Expr2────────┤
+      └─Expr───────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:308:5: 308:72: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr "==" Expr2
+    At that point, if the next token is a `"-"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:308:5: 308:72, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr "==" Expr2 "-" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"-"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr "==" Expr2 "-" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:312:5: 312:74: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr ">" Expr2
+    At that point, if the next token is a `"+"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:312:5: 312:74, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr ">" Expr2 "+" Expr1
+      │                 └─Expr───────┤         │
+      ├─Postfix──────────────────────┤         │
+      ├─Expr0────────────────────────┤         │
+      ├─Expr1────────────────────────┤         │
+      ├─Expr2────────────────────────┘         │
+      └─Expr2──────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"+"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr ">" Expr2 "+" Expr1
+      │        └─Expr2───────┤
+      └─Expr─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:312:5: 312:74: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr ">" Expr2
+    At that point, if the next token is a `"++"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:312:5: 312:74, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr ">" Expr2 "++" Expr1
+      │                 └─Expr───────┤          │
+      ├─Postfix──────────────────────┤          │
+      ├─Expr0────────────────────────┤          │
+      ├─Expr1────────────────────────┤          │
+      ├─Expr2────────────────────────┘          │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"++"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr ">" Expr2 "++" Expr1
+      │        └─Expr2────────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:312:5: 312:74: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr ">" Expr2
+    At that point, if the next token is a `"-"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:312:5: 312:74, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr ">" Expr2 "-" Expr1
+      │                 └─Expr───────┤         │
+      ├─Postfix──────────────────────┤         │
+      ├─Expr0────────────────────────┤         │
+      ├─Expr1────────────────────────┤         │
+      ├─Expr2────────────────────────┘         │
+      └─Expr2──────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"-"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr ">" Expr2 "-" Expr1
+      │        └─Expr2───────┤
+      └─Expr─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:313:5: 313:76: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr ">=" Expr2
+    At that point, if the next token is a `"+"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:313:5: 313:76, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr ">=" Expr2 "+" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"+"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr ">=" Expr2 "+" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:313:5: 313:76: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr ">=" Expr2
+    At that point, if the next token is a `"++"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:313:5: 313:76, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr ">=" Expr2 "++" Expr1
+      │                 └─Expr────────┤          │
+      ├─Postfix───────────────────────┤          │
+      ├─Expr0─────────────────────────┤          │
+      ├─Expr1─────────────────────────┤          │
+      ├─Expr2─────────────────────────┘          │
+      └─Expr2────────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"++"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr ">=" Expr2 "++" Expr1
+      │         └─Expr2────────┤
+      └─Expr───────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:313:5: 313:76: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr ">=" Expr2
+    At that point, if the next token is a `"-"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:313:5: 313:76, which would consume
+    the top 3 token(s) from the stack and produce a `Expr`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr ">=" Expr2 "-" Expr1
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┤         │
+      ├─Expr2─────────────────────────┘         │
+      └─Expr2───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"-"` token and later use it to construct a
+    `Expr2`. This might then yield a parse tree like
+      Expr ">=" Expr2 "-" Expr1
+      │         └─Expr2───────┤
+      └─Expr──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:302:5: 302:69: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr2 "+" Expr1
+    At that point, if the next token is a `"*"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:302:5: 302:69, which would consume
+    the top 3 token(s) from the stack and produce a `Expr2`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr2 "+" Expr1 "*" Expr0
+      │                 ├─Expr2───────┤         │
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┘         │
+      └─Expr1───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"*"` token and later use it to construct a
+    `Expr1`. This might then yield a parse tree like
+      Expr2 "+" Expr1 "*" Expr0
+      │         └─Expr1───────┤
+      └─Expr2─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:302:5: 302:69: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr2 "+" Expr1
+    At that point, if the next token is a `"/"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:302:5: 302:69, which would consume
+    the top 3 token(s) from the stack and produce a `Expr2`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr2 "+" Expr1 "/" Expr0
+      │                 ├─Expr2───────┤         │
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┘         │
+      └─Expr1───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"/"` token and later use it to construct a
+    `Expr1`. This might then yield a parse tree like
+      Expr2 "+" Expr1 "/" Expr0
+      │         └─Expr1───────┤
+      └─Expr2─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:304:5: 304:73: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr2 "++" Expr1
+    At that point, if the next token is a `"*"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:304:5: 304:73, which would consume
+    the top 3 token(s) from the stack and produce a `Expr2`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr2 "++" Expr1 "*" Expr0
+      │                 ├─Expr2────────┤         │
+      │                 └─Expr─────────┤         │
+      ├─Postfix────────────────────────┤         │
+      ├─Expr0──────────────────────────┤         │
+      ├─Expr1──────────────────────────┘         │
+      └─Expr1────────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"*"` token and later use it to construct a
+    `Expr1`. This might then yield a parse tree like
+      Expr2 "++" Expr1 "*" Expr0
+      │          └─Expr1───────┤
+      └─Expr2──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:304:5: 304:73: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr2 "++" Expr1
+    At that point, if the next token is a `"/"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:304:5: 304:73, which would consume
+    the top 3 token(s) from the stack and produce a `Expr2`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr2 "++" Expr1 "/" Expr0
+      │                 ├─Expr2────────┤         │
+      │                 └─Expr─────────┤         │
+      ├─Postfix────────────────────────┤         │
+      ├─Expr0──────────────────────────┤         │
+      ├─Expr1──────────────────────────┘         │
+      └─Expr1────────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"/"` token and later use it to construct a
+    `Expr1`. This might then yield a parse tree like
+      Expr2 "++" Expr1 "/" Expr0
+      │          └─Expr1───────┤
+      └─Expr2──────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:303:5: 303:69: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr2 "-" Expr1
+    At that point, if the next token is a `"*"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:303:5: 303:69, which would consume
+    the top 3 token(s) from the stack and produce a `Expr2`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr2 "-" Expr1 "*" Expr0
+      │                 ├─Expr2───────┤         │
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┘         │
+      └─Expr1───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"*"` token and later use it to construct a
+    `Expr1`. This might then yield a parse tree like
+      Expr2 "-" Expr1 "*" Expr0
+      │         └─Expr1───────┤
+      └─Expr2─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:303:5: 303:69: Local ambiguity detected
+
+    The problem arises after having observed the following symbols in the input:
+      "|" ParamList "|" Expr2 "-" Expr1
+    At that point, if the next token is a `"/"`, then the parser can proceed in two
+    different ways.
+
+    First, the parser could execute the production at
+    /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:303:5: 303:69, which would consume
+    the top 3 token(s) from the stack and produce a `Expr2`. This might then yield a parse
+    tree like
+      "|" ParamList "|" Expr2 "-" Expr1 "/" Expr0
+      │                 ├─Expr2───────┤         │
+      │                 └─Expr────────┤         │
+      ├─Postfix───────────────────────┤         │
+      ├─Expr0─────────────────────────┤         │
+      ├─Expr1─────────────────────────┘         │
+      └─Expr1───────────────────────────────────┘
+
+    Alternatively, the parser could shift the `"/"` token and later use it to construct a
+    `Expr1`. This might then yield a parse tree like
+      Expr2 "-" Expr1 "/" Expr0
+      │         └─Expr1───────┤
+      └─Expr2─────────────────┘
+
+    See the LALRPOP manual for advice on making your grammar LR(1).
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:269:5: 269:23: Conflict detected
+
+      when in this state:
+    ArgList = Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"!="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:269:5: 269:23: Conflict detected
+
+      when in this state:
+    ArgList = Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"<"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:269:5: 269:23: Conflict detected
+
+      when in this state:
+    ArgList = Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"<="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:269:5: 269:23: Conflict detected
+
+      when in this state:
+    ArgList = Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"=="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:269:5: 269:23: Conflict detected
+
+      when in this state:
+    ArgList = Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `">"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:269:5: 269:23: Conflict detected
+
+      when in this state:
+    ArgList = Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `">="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:205:5: 205:111: Conflict detected
+
+      when in this state:
+    IfStmt = "if" Expr Block (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    IfStmt = "if" Expr Block (*) "else" Block ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"else"` we can reduce to a `IfStmt` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:252:5: 252:50: Conflict detected
+
+      when in this state:
+    TypeExpr = "identifier" (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    TypeExpr = "identifier" (*) "<" TypeList ">" ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"<"` we can reduce to a `TypeExpr` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:324:5: 325:0: Ambiguous grammar detected
+
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr "!=" Expr2
+
+    They could be reduced like so:
+      "|" ParamList "|" Expr "!=" Expr2
+      ├─Postfix────────────┤          │
+      ├─Expr0──────────────┤          │
+      ├─Expr1──────────────┤          │
+      ├─Expr2──────────────┤          │
+      ├─Expr───────────────┘          │
+      └─Expr──────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr "!=" Expr2
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:324:5: 325:0: Ambiguous grammar detected
+
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr "<" Expr2
+
+    They could be reduced like so:
+      "|" ParamList "|" Expr "<" Expr2
+      ├─Postfix────────────┤         │
+      ├─Expr0──────────────┤         │
+      ├─Expr1──────────────┤         │
+      ├─Expr2──────────────┤         │
+      ├─Expr───────────────┘         │
+      └─Expr─────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr "<" Expr2
+      │                 └─Expr───────┤
+      └─Postfix──────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:324:5: 325:0: Ambiguous grammar detected
+
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr "<=" Expr2
+
+    They could be reduced like so:
+      "|" ParamList "|" Expr "<=" Expr2
+      ├─Postfix────────────┤          │
+      ├─Expr0──────────────┤          │
+      ├─Expr1──────────────┤          │
+      ├─Expr2──────────────┤          │
+      ├─Expr───────────────┘          │
+      └─Expr──────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr "<=" Expr2
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:324:5: 325:0: Ambiguous grammar detected
+
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr "==" Expr2
+
+    They could be reduced like so:
+      "|" ParamList "|" Expr "==" Expr2
+      ├─Postfix────────────┤          │
+      ├─Expr0──────────────┤          │
+      ├─Expr1──────────────┤          │
+      ├─Expr2──────────────┤          │
+      ├─Expr───────────────┘          │
+      └─Expr──────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr "==" Expr2
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:324:5: 325:0: Ambiguous grammar detected
+
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr ">" Expr2
+
+    They could be reduced like so:
+      "|" ParamList "|" Expr ">" Expr2
+      ├─Postfix────────────┤         │
+      ├─Expr0──────────────┤         │
+      ├─Expr1──────────────┤         │
+      ├─Expr2──────────────┤         │
+      ├─Expr───────────────┘         │
+      └─Expr─────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr ">" Expr2
+      │                 └─Expr───────┤
+      └─Postfix──────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:324:5: 325:0: Ambiguous grammar detected
+
+    The following symbols can be reduced in two ways:
+      "|" ParamList "|" Expr ">=" Expr2
+
+    They could be reduced like so:
+      "|" ParamList "|" Expr ">=" Expr2
+      ├─Postfix────────────┤          │
+      ├─Expr0──────────────┤          │
+      ├─Expr1──────────────┤          │
+      ├─Expr2──────────────┤          │
+      ├─Expr───────────────┘          │
+      └─Expr──────────────────────────┘
+
+    Alternatively, they could be reduced like so:
+      "|" ParamList "|" Expr ">=" Expr2
+      │                 └─Expr────────┤
+      └─Postfix───────────────────────┘
+
+    LALRPOP does not yet support ambiguous grammars. See the LALRPOP manual for advice on
+    making your grammar unambiguous.
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:270:5: 271:0: Conflict detected
+
+      when in this state:
+    ArgList = ArgList "," Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"!="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:270:5: 271:0: Conflict detected
+
+      when in this state:
+    ArgList = ArgList "," Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"<"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:270:5: 271:0: Conflict detected
+
+      when in this state:
+    ArgList = ArgList "," Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"<="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:270:5: 271:0: Conflict detected
+
+      when in this state:
+    ArgList = ArgList "," Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"=="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:270:5: 271:0: Conflict detected
+
+      when in this state:
+    ArgList = ArgList "," Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `">"` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:270:5: 271:0: Conflict detected
+
+      when in this state:
+    ArgList = ArgList "," Expr (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "!=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "<=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) "==" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr = Expr (*) ">=" Expr2 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `">="` we can reduce to a `ArgList` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:291:5: 291:8: Conflict detected
+
+      when in this state:
+    Expr1 = Expr1 (*) "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = Expr1 (*) "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = Expr1 (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"*"` we can reduce to a `Expr2` but we can also shift
+
+  /home/chase/Repositories/Cobblr/src/cobblr.lalrpop:291:5: 291:8: Conflict detected
+
+      when in this state:
+    Expr1 = Expr1 (*) "*" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr1 = Expr1 (*) "/" Expr0 ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+    Expr2 = Expr1 (*) ["let", "mut", "fn", "struct", "enum", "impl", "async", "await", "if", "else", "for", "while", "loop", "break", "continue", "return", "match", "Some", "None", "Ok", "Err", "use", "in", "import", "trait", "#derive", "::", ":", ".", "..", ";", ",", "_", "=", "+", "-", "*", "/", "++", "|", "|>", "->", "=>", "&", "&&", "||", "==", "!=", "<=", ">=", "<", ">", "(", ")", "{", "}", "[", "]", "int", "float", "string", "identifier", "true", "false", Eof]
+
+    and looking at a token `"/"` we can reduce to a `Expr2` but we can also shift
+
+
+  --- stderr
+
+  thread 'main' panicked at build.rs:4:29:
+  called `Result::unwrap()` on an `Err` value: Kind(InvalidData)
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
