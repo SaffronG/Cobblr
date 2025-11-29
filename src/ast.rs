@@ -91,6 +91,8 @@ pub enum Expr {
     NumberInt(i64),
     NumberFloat(f64),
     String(String),
+    Reference(Box<Expr>),
+    MutReference(Box<Expr>),
     Match {
         value: Box<Expr>,
         arms: Vec<MatchArm>,
@@ -98,12 +100,13 @@ pub enum Expr {
     Call(Box<Expr>, Vec<Expr>),
     AssocCall(String, String, Vec<Expr>),
     MethodCall(Box<Expr>, String, Vec<Expr>),
-    StructLit(String, Vec<(String, Expr)>),
+    StructLit((String, Vec<(String, Expr)>)),
     Closure(Vec<Param>, Box<Expr>),
 
     // Postfix accesor operations
     Index(Box<Expr>, Box<Expr>),
     FieldAccess(Box<Expr>, String),
+    DotAccess(Box<Expr>, String),
 
     // Binary infix operations
     Add(Box<Expr>, Box<Expr>),
@@ -155,6 +158,8 @@ pub enum TypeExpr {
     String,
     Custom(String),
     Generic(String, Vec<TypeExpr>),
+    MutableReference(Box<TypeExpr>),
+    Reference(Box<TypeExpr>),
 }
 
 pub type Path = PathExpr;

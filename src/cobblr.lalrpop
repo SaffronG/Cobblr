@@ -245,6 +245,8 @@ BoolLit: bool = {
 };
 
 pub TypeExpr: ast::TypeExpr = {
+    "&" <t:TypeExpr> => ast::TypeExpr::Reference(Box::new(t)),
+    "&" "mut" <t:TypeExpr> => ast::TypeExpr::MutableReference(Box::new(t)),
     "int" => ast::TypeExpr::Int64,
     "float" => ast::TypeExpr::Float64,
     "string" => ast::TypeExpr::String,
@@ -271,7 +273,7 @@ ArgList: Vec<ast::Expr> = {
 };
 
 StructLiteral: (String, Vec<(String, Expr)>) = {
-    <name:"identifier"> "{" <fields:FieldList> "}" => (name, fields)
+    <name:"identifier"> "<-" "(" <fields:FieldList> ")" => (name, fields)
 };
 
 FieldList: Vec<(String, Expr)> = {
@@ -314,16 +316,20 @@ Postfix: ast::Expr = {
     <l:Postfix> "::" <id:"identifier"> => ast::Expr::FieldAccess(Box::new(l), id),
     <l:Postfix> "(" <args:ArgList> ")" => ast::Expr::Call(Box::new(l), args),
     <l:Postfix> "[" <idx:Expr> "]" => ast::Expr::Index(Box::new(l), Box::new(idx)),
+    <l:Postfix> "." <field:"identifier"> => ast::Expr::DotAccess(Box::new(l), field),
 }
 
 Atom: ast::Expr = {
+    "|" <params:ParamList> "|" "{" <body:Expr> "}" => ast::Expr::Closure(params, Box::new(body)),
     "|" <params:ParamList> "|" <body:Expr> "end" => ast::Expr::Closure(params, Box::new(body)),
-    //<s:StructLiteral> => ast::ExprStructLiteral(s.0, s.1),
+    <s:StructLiteral> => ast::Expr::StructLit(s),
     //MatchExpr,
     Primary,
 }
 
 Primary: ast::Expr = {
+    "&" <e:Primary> => ast::Expr::Reference(Box::new(e)),
+    "&" "mut" <e:Primary> => ast::Expr::MutReference(Box::new(e)),
     <n:"int"> => ast::Expr::NumberInt(n),
     <f:"float"> => ast::Expr::NumberFloat(f),
     <s:"string"> => ast::Expr::String(s),
@@ -380,6 +386,7 @@ extern {
     "|" => Token::Pipe,
     "|>" => Token::PipeForward,
     "->" => Token::Arrow,
+    "<-" => Token::LArrow,
     "=>" => Token::FatArrow,
     "&" => Token::And,
     "&&" => Token::AndAnd,

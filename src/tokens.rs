@@ -10,7 +10,7 @@ pub enum LexicalError {
 }
 
 #[derive(Logos, Debug, PartialEq, Clone)]
-#[logos(skip r"[ \t\n\f]+", skip r"#.*\n?", error = LexicalError)]
+#[logos(skip r"[ \t\n\f]+", skip r"#.*\n?", skip r"//.*", error = LexicalError)]
 pub enum Token {
     #[token("let")]
     Let,
@@ -98,6 +98,8 @@ pub enum Token {
     PipeForward,
     #[token("->")]
     Arrow,
+    #[token("<-")]
+    LArrow,
     #[token("=>")]
     FatArrow,
     #[token("&")]

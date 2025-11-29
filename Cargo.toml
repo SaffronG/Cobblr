@@ -10,3 +10,6 @@ lalrpop-util = { version = "0.21", features = ["lexer","unicode"] }
 
 [build-dependencies]
 lalrpop = "0.22.2"
+
+[lints.rust]
+unused_imports = "allow"

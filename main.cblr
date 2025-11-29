@@ -1,27 +1,7 @@
-use std::io;
-use math::range;
-
-#derive(Debug, Clone)
-struct Point {
-    x: f64,
-    y: f64,
-}
-
-struct Rectangle {
-    width: f64 = 10.0,
-    height: f64 = 20.0,
-}
-
-impl Point {
-    fn new(x: f64, y: f64) -> Point {
-        Point { x, y }
-    }
-
     fn translate(&mut self, dx: f64, dy: f64) {
         self.x += dx;
         self.y += dy;
     }
-}
 
 impl Rectangle {
     fn area(&self) -> f64 {
@@ -89,5 +69,4 @@ fn main() {
 
     let mut p = Point::new(10.0, 20.0);
     p.translate(5.0, -3.0);
-    println("Point: " ++ p.x ++ ", " ++ p.y);
 }

@@ -1,9 +1,60 @@
+use std::io::Env;
+
 fn add(l:i32, r:i32) -> i32 {
     l + r
 }
 
-fn main() -> i32 {
-    let transform = (| n: int, m: int | n * m end);
-    let sum: i32 = add(1,2);
+// Enum declaration
+enum Types {
+    String(string),
+    Bool(boolean),
+    i32(int),
+    f32(float),
+}
+
+#derive(Debug, Clone)
+struct Point {
+    x: int,
+    y: int,
+}
+
+impl Point {
+    // Point Initializer
+    fn new (x_point: int, y_point: int) -> Point {
+        // storing Point as a temporary variable
+        let p1 = Point <- ( x: x_point, y: y_point );
+        // implicit return
+        p1
+    }
+    async fn scale_immut (s: &int, scalar: int) -> Point {
+        Point <- ( x: s.x * scalar, y: s.y * scalar )
+    }
+}
+
+fn main () -> i32 {
+    // Struct Init
+    let p1 = Point <- ( x:0, y: 0 );
+
+    // Prepend and Append ++ operator
+    let Arr: Vec<int> = Vec::new();
+    let Arr2: Vec<int> = Vec::new();
+    let combo = Arr ++ Arr2;
+
+    // Index access and assignment
+    Arr[0] = 379010;
+
+    // Closure Syntax
+    let transform = (| n: int, m: int | { n * m });
+
+    // Function calling and type assignement
+    let sum: i32 = add(1,2) + 3;
+
+    // String Concat
+    print("(" ++ p1.x ++ "," ++ p1.y ++ ")");
+
+    //print(p.scale_immut(&self, 5);
+    print("sum: %s sum %s .", p1.x, p1.y);
+
+    // Implicit Return
     sum
 }
