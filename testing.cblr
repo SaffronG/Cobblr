@@ -18,6 +18,12 @@ struct Point {
     y: int,
 }
 
+struct Stack<T, G> {
+    list: Vec<T>,
+    union: Vec<G>,
+    count: int,
+}
+
 impl Point {
     // Point Initializer
     fn new (x_point: int, y_point: int) -> Point {
@@ -33,15 +39,16 @@ impl Point {
 
 fn main () -> i32 {
     // Struct Init
-    let p1 = Point <- ( x:0, y: 0 );
+    let p1 = Point::new(9,10);
 
     // Prepend and Append ++ operator
     let Arr: Vec<int> = Vec::new();
     let Arr2: Vec<int> = Vec::new();
     let combo = Arr ++ Arr2;
+    Arr::scale_immut(&self, 2);
 
     // Index access and assignment
-    Arr[0] = 379010;
+    //Arr[0] = 379010;
 
     // Closure Syntax
     let transform = (| n: int, m: int | { n * m });
@@ -52,9 +59,12 @@ fn main () -> i32 {
     // String Concat
     print("(" ++ p1.x ++ "," ++ p1.y ++ ")");
 
-    //print(p.scale_immut(&self, 5);
+    print(p::scale_immut(&self, 5);
     print("sum: %s sum %s .", p1.x, p1.y);
 
+    // Tuples
+    let toop: (String, Int) = ("err_tok", 128);
+
     // Implicit Return
-    sum
+    Ok(sum)
 }

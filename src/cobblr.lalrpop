@@ -68,7 +68,9 @@ pub IdentifierList: Vec<String> = {
 
 pub StructDecl: ast::Decl = {
     "struct" <id:"identifier"> "{" <members:StructBody> "}" =>
-        ast::Decl::Struct(id, members)
+        ast::Decl::Struct(id, vec![], members),
+    "struct" <id:"identifier"> "<" <gps:IdentifierList> ">" "{" <members:StructBody> "}" =>
+        ast::Decl::Struct(id, gps, members)
 };
 
 StructBody: Vec<ast::StructMember> = {
@@ -140,16 +142,23 @@ ImplBody: Vec<ast::Decl> = {
         v
     }
 };
-
 pub FunctionDecl: ast::Decl = {
     "fn" <id:"identifier"> "(" <params:ParamList> ")" <body:Block> =>
-        ast::Decl::Function(id, params, None, body),
+        ast::Decl::Function(id, vec![params], None, body),
     "fn" <id:"identifier"> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
-        ast::Decl::Function(id, params, Some(ret_ty), body),
+        ast::Decl::Function(id, vec![params], Some(ret_ty), body),
+    "fn" <id:"identifier"> "<" <_g:IdentifierList> ">" "(" <params:ParamList> ")" <body:Block> =>
+        ast::Decl::Function(id, vec![params], None, body), // AST: you may store g into AST if you want
+    "fn" <id:"identifier"> "<" <_g:IdentifierList> ">" "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
+        ast::Decl::Function(id, vec![params], Some(ret_ty), body),
+    "fn" <id:"identifier"> "(" <params:ParamList> ")" "(" <params2:ParamList> ")" <body:Block> =>
+        ast::Decl::Function(id, vec![params, params2], None, body),
+    "fn" <id:"identifier"> "(" <params:ParamList> ")" "(" <params2:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
+        ast::Decl::Function(id, vec![params, params2], Some(ret_ty), body),
     "async" "fn" <id:"identifier"> "(" <params:ParamList> ")" <body:Block> =>
-        ast::Decl::AsyncFunction(id, params, None, body),
+        ast::Decl::AsyncFunction(id, vec![params], None, body),
     "async" "fn" <id:"identifier"> "(" <params:ParamList> ")" "->" <ret_ty:TypeExpr> <body:Block> =>
-        ast::Decl::AsyncFunction(id, params, Some(ret_ty), body)
+        ast::Decl::AsyncFunction(id, vec![params], Some(ret_ty), body)
 };
 
 pub ParamList: Vec<ast::Param> = {
@@ -309,6 +318,10 @@ pub Expr: ast::Expr = {
     <l:Expr> "<=" <r:Expr> => ast::Expr::LessEq(Box::new(l), Box::new(r)),
     <l:Expr> ">"  <r:Expr> => ast::Expr::Greater(Box::new(l), Box::new(r)),
     <l:Expr> ">=" <r:Expr> => ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
+
+    #[precedence(level="4")] #[assoc(side="left")]
+    <l:Expr> "|>" <r:Expr> => ast::Expr::Pipe(Box::new(l), Box::new(r)),
+
 }
 
 Postfix: ast::Expr = {
@@ -322,7 +335,10 @@ Postfix: ast::Expr = {
 Atom: ast::Expr = {
     "|" <params:ParamList> "|" "{" <body:Expr> "}" => ast::Expr::Closure(params, Box::new(body)),
     "|" <params:ParamList> "|" <body:Expr> "end" => ast::Expr::Closure(params, Box::new(body)),
-    <s:StructLiteral> => ast::Expr::StructLit(s),
+    <s:StructLiteral> => {
+        let (name, fields) = s;
+        ast::Expr::StructLit(name, fields)
+    },
     //MatchExpr,
     Primary,
 }
@@ -330,10 +346,14 @@ Atom: ast::Expr = {
 Primary: ast::Expr = {
     "&" <e:Primary> => ast::Expr::Reference(Box::new(e)),
     "&" "mut" <e:Primary> => ast::Expr::MutReference(Box::new(e)),
-    <n:"int"> => ast::Expr::NumberInt(n),
-    <f:"float"> => ast::Expr::NumberFloat(f),
+    <n:"int"> => ast::Expr::Number(ast::Number::Int(n)),
+    <f:"float"> => ast::Expr::Number(ast::Number::Float(f)),
     <s:"string"> => ast::Expr::String(s),
     <id:"identifier"> => ast::Expr::Identifier(id),
+    "Some" "(" <e:Expr> ")" => ast::Expr::Variant("Some".to_string(), Some(Box::new(e))),
+    "None" => ast::Expr::Variant("None".to_string(), None),
+    "Ok" "(" <e:Expr> ")" => ast::Expr::Variant("Ok".to_string(), Some(Box::new(e))),
+    "Err" "(" <e:Expr> ")" => ast::Expr::Variant("Err".to_string(), Some(Box::new(e))),
     "(" <e:Expr> ")" => e
 }
 

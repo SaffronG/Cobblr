@@ -3,9 +3,9 @@ pub struct Program(pub Vec<Decl>);
 
 #[derive(Debug, Clone)]
 pub enum Decl {
-    Function(String, Vec<Param>, Option<TypeExpr>, Block),
-    AsyncFunction(String, Vec<Param>, Option<TypeExpr>, Block),
-    Struct(String, Vec<StructMember>),
+    Function(String, Vec<Vec<Param>>, Option<TypeExpr>, Block), // name, param-groups, ret, body
+    AsyncFunction(String, Vec<Vec<Param>>, Option<TypeExpr>, Block),
+    Struct(String, Vec<String>, Vec<StructMember>), // name, type_params, members
     Enum(String, Vec<(String, Option<Vec<TypeExpr>>)>),
     Trait(String, Vec<TraitMethod>),
     Impl(String, Vec<Decl>),
@@ -88,36 +88,48 @@ pub struct IfStmt {
 #[derive(Debug, Clone)]
 pub enum Expr {
     Identifier(String),
-    NumberInt(i64),
-    NumberFloat(f64),
+    Number(Number),
     String(String),
     Reference(Box<Expr>),
     MutReference(Box<Expr>),
+
     Match {
         value: Box<Expr>,
         arms: Vec<MatchArm>,
     },
+
+    // Function calls
     Call(Box<Expr>, Vec<Expr>),
     AssocCall(String, String, Vec<Expr>),
     MethodCall(Box<Expr>, String, Vec<Expr>),
-    StructLit((String, Vec<(String, Expr)>)),
+
+    // Struct literal: StructName { field: expr, ... }
+    StructLit(String, Vec<(String, Expr)>),
+
+    // Closures
     Closure(Vec<Param>, Box<Expr>),
 
-    // Postfix accesor operations
+    // Enum variants: Some(x) or None
+    Variant(String, Option<Box<Expr>>),
+
+    // Pipe operator: left |> right
+    Pipe(Box<Expr>, Box<Expr>),
+
+    // Postfix accessors
     Index(Box<Expr>, Box<Expr>),
     FieldAccess(Box<Expr>, String),
     DotAccess(Box<Expr>, String),
 
-    // Binary infix operations
+    // Binary arithmetic
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
 
-    // Binary operations
+    // String concat
     Concat(Box<Expr>, Box<Expr>),
 
-    // Comparison
+    // Comparisons
     Equal(Box<Expr>, Box<Expr>),
     NotEqual(Box<Expr>, Box<Expr>),
     Less(Box<Expr>, Box<Expr>),
