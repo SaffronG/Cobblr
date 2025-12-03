@@ -171,6 +171,15 @@ pub ParamList: Vec<ast::Param> = {
     }
 };
 
+TypeList: Vec<ast::TypeExpr> = {
+    <t:TypeExpr> => vec![t],
+    <ts:TypeList> "," <t:TypeExpr> => {
+        let mut v = ts;
+        v.push(t);
+        v
+    }
+};
+
 Param: ast::Param = {
     <id:"identifier"> ":" <ty:TypeExpr> =>
         ast::Param { name: id, ty, is_mut: false },
@@ -207,7 +216,8 @@ pub Statement: ast::Stmt = {
     "while" <e:Expr> <b:Block> => ast::Stmt::While(e, b),
     "loop" <b:Block> => ast::Stmt::Loop(b),
     "break" ";" => ast::Stmt::Break,
-    "for" <id:"identifier"> "in" <e:Expr> <b:Block> => ast::Stmt::For(id, e, b)
+    "for" <id:"identifier"> "in" <e:Expr> <b:Block> => ast::Stmt::For(id, e, b),
+    <m:MatchExpr> => ast::Stmt::Match(m)
 };
 
 IfStmt: ast::IfStmt = {
@@ -269,11 +279,6 @@ Bool: ast::Bool = {
     "true" => ast::Bool::True,
     "false" => ast::Bool::False,
 }
-
-TypeList: Vec<ast::TypeExpr> = {
-    <t:TypeExpr> => vec![t],
-    <ts:TypeList> "," <t:TypeExpr> => { let mut v = ts; v.push(t); v }
-};
 
 ArgList: Vec<ast::Expr> = {
     => vec![],
@@ -342,6 +347,32 @@ Atom: ast::Expr = {
     //MatchExpr,
     Primary,
 }
+
+TupleExpr: ast::Expr = {
+    "(" <e:Expr> ")" => e, // grouping expression
+    "(" <list:TupleList> ")" => ast::Expr::Tuple(list)
+};
+
+TupleList: Vec<ast::Expr> = {
+    <e:Expr> "," <list:ArgList> => {
+        let mut v = vec![e];
+        v.extend(list);
+        v
+    }
+};
+
+TupleType: ast::TypeExpr = {
+    "(" <t:TypeExpr> ")" => t,
+    "(" <list:TupleTypeList> ")" => ast::TypeExpr::Tuple(list),
+};
+
+TupleTypeList: Vec<ast::TypeExpr> = {
+    <t:TypeExpr> "," <ts:TypeList> => {
+        let mut v = vec![t];
+        v.extend(ts);
+        v
+    }
+};
 
 Primary: ast::Expr = {
     "&" <e:Primary> => ast::Expr::Reference(Box::new(e)),

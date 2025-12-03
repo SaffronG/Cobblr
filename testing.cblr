@@ -59,11 +59,27 @@ fn main () -> i32 {
     // String Concat
     print("(" ++ p1.x ++ "," ++ p1.y ++ ")");
 
-    print(p::scale_immut(&self, 5);
+    print(p::scale_immut(&self, 5));
     print("sum: %s sum %s .", p1.x, p1.y);
 
-    // Tuples
-    let toop: (String, Int) = ("err_tok", 128);
+    // Example using the pipe forward syntax
+    let equation = square |> add(1,2);
+
+    loop {
+        let i = 0;
+        if i > Arr.length {
+            print("Out of range");
+        }
+        else {
+            print(Arr[i]);
+        }
+    }
+
+    match Arr[0] {
+        0 => { print("first item"); },
+        1 => { print("second item"); },
+        e => { print("%s", e); },
+    }
 
     // Implicit Return
     Ok(sum)

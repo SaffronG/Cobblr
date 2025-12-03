@@ -76,6 +76,7 @@ pub enum Stmt {
     Loop(Block),
     Break,
     For(String, Expr, Block),
+    Match(Expr),
 }
 
 #[derive(Debug, Clone)]
@@ -97,6 +98,7 @@ pub enum Expr {
         value: Box<Expr>,
         arms: Vec<MatchArm>,
     },
+    Tuple(Vec<Expr>),
 
     // Function calls
     Call(Box<Expr>, Vec<Expr>),
@@ -172,6 +174,7 @@ pub enum TypeExpr {
     Generic(String, Vec<TypeExpr>),
     MutableReference(Box<TypeExpr>),
     Reference(Box<TypeExpr>),
+    Tuple(Vec<TypeExpr>),
 }
 
 pub type Path = PathExpr;
