@@ -1,694 +1,729 @@
-// TODO: Implement fully fleshed out CST based on the AST and Lalrpop Grammar
-use crate::ast::*;
-use std::convert::TryFrom;
+use std::rc::Rc;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Span {
-    pub start: usize,
-    pub end: usize,
+#[derive(Debug, Clone)]
+pub struct Span(pub usize, pub usize); // byte offsets: start..end
+
+// --- Tokens ---
+#[derive(Debug, Clone)]
+pub enum Token {
+    Ident(String, Span),
+    Number(String, Span),
+    StringLit(String, Span),
+    Kw(String, Span),
+    Punct(char, Span),
+    Arrow(Span),    // ->
+    FatArrow(Span), // =>
+    Comma(Span),
+    Colon(Span),
+    Semicolon(Span),
+    LParen(Span),
+    RParen(Span),
+    LBrace(Span),
+    RBrace(Span),
+    LBracket(Span),
+    RBracket(Span),
 }
 
-impl Span {
-    pub fn join(&self, other: &Span) -> Span {
-        Span {
-            start: self.start.min(other.start),
-            end: self.end.max(other.end),
-        }
-    }
-}
-
+// --- CST Nodes ---
 #[derive(Debug, Clone)]
-pub struct IdentToken(pub String, pub Span);
-#[derive(Debug, Clone)]
-pub struct IntToken(pub i64, pub Span);
-#[derive(Debug, Clone)]
-pub struct FloatToken(pub f64, pub Span);
-#[derive(Debug, Clone)]
-pub struct StrToken(pub String, pub Span);
-#[derive(Debug, Clone)]
-pub struct BoolToken(pub bool, pub Span);
-
-#[derive(Debug, Clone)]
-pub struct CstError {
-    pub msg: String,
+pub struct CstProgram {
+    pub decls: Vec<CstDecl>,
     pub span: Option<Span>,
 }
 
-impl CstError {
-    fn new<S: Into<String>>(msg: S, span: Option<Span>) -> Self {
-        Self {
-            msg: msg.into(),
-            span,
-        }
-    }
+#[derive(Debug, Clone)]
+pub enum CstDecl {
+    Function(CstFunction),
+    AsyncFunction(CstFunction),
+    Struct(CstStruct),
+    Enum(CstEnum),
+    Trait(CstTrait),
+    Impl(CstImpl),
+    Let(CstLet),
+    Import(CstImport),
+    DerivedStruct(CstDerived),
 }
 
 #[derive(Debug, Clone)]
-pub struct CProgram {
-    pub decls: Vec<CDecl>,
-    pub span: Span,
+pub struct CstFunction {
+    pub async_kw: Option<Token>,
+    pub fn_kw: Token,
+    pub name: Token,
+    pub generics: Option<Vec<Token>>,
+    pub param_groups: Vec<Vec<CstParam>>, // preserve grouping and punctuation
+    pub ret_type: Option<(Token, CstType)>, // '->' token + type
+    pub body: CstBlock,
+    pub span: Option<Span>,
 }
 
 #[derive(Debug, Clone)]
-pub enum CDecl {
-    Function {
-        name: IdentToken,
-        params: Vec<CParam>,
-        ret_ty: Option<CTypeExpr>,
-        body: CBlock,
-        span: Span,
-        is_async: bool,
-    },
-    Struct {
-        name: IdentToken,
-        members: Vec<CStructMember>,
-        span: Span,
-    },
-    Enum {
-        name: IdentToken,
-        variants: Vec<CEnumVariant>,
-        span: Span,
-    },
-    Trait {
-        name: IdentToken,
-        methods: Vec<CTraitMethod>,
-        span: Span,
-    },
-    Impl {
-        name: IdentToken,
-        items: Vec<CDecl>,
-        span: Span,
-    },
-    ImplTrait {
-        trait_name: IdentToken,
-        for_name: IdentToken,
-        items: Vec<CDecl>,
-        span: Span,
-    },
-    Let {
-        name: IdentToken,
-        ty: Option<CTypeExpr>,
-        value: CExpr,
-        span: Span,
-        is_mut: bool,
-    },
-    Import {
-        path: CPath,
-        span: Span,
-    },
-    DerivedStruct {
-        derives: Vec<IdentToken>,
-        struct_decl: Box<CDecl>,
-        span: Span,
-    },
+pub struct CstParam {
+    pub name: Token,
+    pub colon: Token,
+    pub ty: CstType,
+    pub is_mut: Option<Token>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CPath {
-    pub parts: Vec<IdentToken>,
-    pub span: Span,
+pub struct CstStruct {
+    pub struct_kw: Token,
+    pub name: Token,
+    pub type_params: Option<Vec<Token>>,
+    pub members: Vec<CstStructMember>,
+    pub span: Option<Span>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CStructMember {
-    pub name: IdentToken,
-    pub ty: CTypeExpr,
-    pub init: Option<CExpr>,
-    pub span: Span,
+pub struct CstStructMember {
+    pub name: Token,
+    pub colon: Token,
+    pub ty: CstType,
+    pub equal: Option<Token>,
+    pub init_expr: Option<Box<CstExpr>>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CEnumVariant {
-    pub name: IdentToken,
-    pub payload: Option<Vec<CTypeExpr>>,
-    pub span: Span,
+pub struct CstEnum {
+    pub enum_kw: Token,
+    pub name: Token,
+    pub variants: Vec<(Token, Option<Vec<CstType>>)>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CTraitMethod {
-    pub name: IdentToken,
-    pub params: Vec<CParam>,
-    pub span: Span,
+pub struct CstTrait {
+    pub trait_kw: Token,
+    pub name: Token,
+    pub methods: Vec<CstTraitMethod>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CParam {
-    pub name: IdentToken,
-    pub ty: CTypeExpr,
-    pub is_mut: bool,
-    pub span: Span,
+pub struct CstTraitMethod {
+    pub name: Token,
+    pub params: Vec<CstParam>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CBlock {
-    pub statements: Vec<CStmt>,
-    pub implicit_return: Option<CExpr>,
-    pub span: Span,
+pub struct CstImpl {
+    pub impl_kw: Token,
+    pub target: Token,
+    pub items: Vec<CstDecl>,
 }
 
 #[derive(Debug, Clone)]
-pub enum CStmt {
-    LetDecl(Box<CDecl>),
-    ExprStmt(CExpr),
-    Return(CExpr),
-    If(CIfStmt),
-    While(CExpr, CBlock),
-    Loop(CBlock),
-    Break(Span),
-    For {
-        name: IdentToken,
-        target: CExpr,
-        body: CBlock,
-        span: Span,
-    },
+pub struct CstLet {
+    pub let_kw: Token,
+    pub name: Token,
+    pub colon_ty: Option<(Token, CstType)>,
+    pub equal: Token,
+    pub value: Box<CstExpr>,
 }
 
 #[derive(Debug, Clone)]
-pub struct CIfStmt {
-    pub cond: Box<CExpr>,
-    pub then_branch: CBlock,
-    pub else_branch: Option<CBlock>,
-    pub span: Span,
+pub struct CstImport {
+    pub import_kw: Token,
+    pub path: Vec<Token>,
 }
 
 #[derive(Debug, Clone)]
-pub enum CExpr {
-    Identifier(IdentToken),
-    NumberInt(IntToken),
-    NumberFloat(FloatToken),
-    String(StrToken),
-    Bool(BoolToken),
+pub struct CstDerived {
+    pub attrs: Vec<Token>,
+    pub inner: Box<CstDecl>,
+}
+
+#[derive(Debug, Clone)]
+pub struct CstBlock {
+    pub lbrace: Token,
+    pub statements: Vec<CstStmt>,
+    pub implicit_return: Option<Box<CstExpr>>,
+    pub rbrace: Token,
+}
+
+#[derive(Debug, Clone)]
+pub enum CstStmt {
+    LetDecl(Box<CstDecl>),
+    ExprStmt(Box<CstExpr>),
+    Return(Token, Box<CstExpr>), // 'return' token + expr
+    If(CstIf),
+    While(Box<CstExpr>, CstBlock),
+    Loop(CstBlock),
+    Break(Token),
+    For(
+        Token, /*ident*/
+        Token, /*in*/
+        Box<CstExpr>,
+        CstBlock,
+    ),
+    Match(Box<CstExpr>, Token /*match kw*/),
+}
+
+#[derive(Debug, Clone)]
+pub struct CstIf {
+    pub if_kw: Token,
+    pub cond: Box<CstExpr>,
+    pub then_block: CstBlock,
+    pub else_kw: Option<Token>,
+    pub else_block: Option<CstBlock>,
+}
+
+#[derive(Debug, Clone)]
+pub enum CstExpr {
+    Identifier(Token),
+    Number(Token),
+    StringLit(Token),
+    Reference(Token /*&*/, Box<CstExpr>),
+    MutReference(Token /*&mut*/, Box<CstExpr>),
     Match {
-        value: Box<CExpr>,
-        arms: Vec<CMatchArm>,
-        span: Span,
+        match_kw: Token,
+        value: Box<CstExpr>,
+        lbrace: Token,
+        arms: Vec<CstMatchArm>,
+        rbrace: Token,
     },
+    Tuple(Token /*lparen*/, Vec<CstExpr>, Token /*rparen*/),
     Call {
-        name: IdentToken,
-        args: Vec<CExpr>,
-        span: Span,
+        callee: Box<CstExpr>,
+        lparen: Token,
+        args: Vec<(CstExpr, Option<Token>)>, // expr + optional comma token
+        rparen: Token,
     },
     AssocCall {
-        ty: IdentToken,
-        method: IdentToken,
-        args: Vec<CExpr>,
-        span: Span,
+        path_left: Token,
+        coloncolon: Token,
+        name: Token,
+        lparen: Token,
+        args: Vec<CstExpr>,
+        rparen: Token,
     },
     MethodCall {
-        target: Box<CExpr>,
-        method: IdentToken,
-        args: Vec<CExpr>,
-        span: Span,
+        receiver: Box<CstExpr>,
+        dot: Token,
+        name: Token,
+        lparen: Token,
+        args: Vec<CstExpr>,
+        rparen: Token,
     },
     StructLit {
-        name: IdentToken,
-        fields: Vec<(IdentToken, CExpr)>,
-        span: Span,
+        name: Token,
+        lbrace: Token,
+        fields: Vec<(Token, Token /*:*/, CstExpr, Option<Token>)>,
+        rbrace: Token,
     },
     Closure {
-        params: Vec<IdentToken>,
-        body: Box<CExpr>,
-        span: Span,
+        pipe_l: Token,
+        params: Vec<CstParam>,
+        pipe_r: Token,
+        arrow: Option<Token>,
+        body: Box<CstExpr>,
     },
-    Add(Box<CExpr>, Box<CExpr>, Span),
-    Sub(Box<CExpr>, Box<CExpr>, Span),
-    Mul(Box<CExpr>, Box<CExpr>, Span),
-    Div(Box<CExpr>, Box<CExpr>, Span),
-    Concat(Box<CExpr>, Box<CExpr>, Span),
-    Equal(Box<CExpr>, Box<CExpr>, Span),
-    NotEqual(Box<CExpr>, Box<CExpr>, Span),
-    Less(Box<CExpr>, Box<CExpr>, Span),
-    LessEq(Box<CExpr>, Box<CExpr>, Span),
-    Greater(Box<CExpr>, Box<CExpr>, Span),
-    GreaterEq(Box<CExpr>, Box<CExpr>, Span),
+    Variant {
+        name: Token,
+        lparen: Option<Token>,
+        inner: Option<Box<CstExpr>>,
+        rparen: Option<Token>,
+    },
+    Pipe {
+        left: Box<CstExpr>,
+        pipe: Token,
+        right: Box<CstExpr>,
+    },
+    Index {
+        target: Box<CstExpr>,
+        lbrack: Token,
+        idx: Box<CstExpr>,
+        rbrack: Token,
+    },
+    FieldAccess {
+        target: Box<CstExpr>,
+        dot: Token,
+        name: Token,
+    },
+    DotAccess {
+        target: Box<CstExpr>,
+        dot: Token,
+        name: Token,
+    },
+    Binary {
+        left: Box<CstExpr>,
+        op: Token,
+        right: Box<CstExpr>,
+    },
 }
 
 #[derive(Debug, Clone)]
-pub struct CMatchArm {
-    pub pattern: CPattern,
-    pub body: CBlock,
-    pub span: Span,
+pub struct CstMatchArm {
+    pub pattern: CstPattern,
+    pub fat_arrow: Token,
+    pub body: CstBlock,
 }
 
 #[derive(Debug, Clone)]
-pub enum CPattern {
-    Var(IdentToken),
-    NumberInt(IntToken),
-    NumberFloat(FloatToken),
-    Wildcard(Span),
-    Some(Box<CPattern>, Span),
-    None(Span),
-    Variant(IdentToken, Box<CPattern>, Span),
+pub enum CstPattern {
+    Var(Token),
+    Number(Token),
+    Wildcard(Token),
+    Some(Token, Box<CstPattern>),
+    None(Token),
+    Variant(Token, Box<CstPattern>),
 }
 
 #[derive(Debug, Clone)]
-pub enum CTypeExpr {
-    Int64(Span),
-    Int32(Span),
-    Float64(Span),
-    Bool(Span),
-    String(Span),
-    Custom(IdentToken),
+pub enum CstType {
+    Simple(Token),
     Generic {
-        id: IdentToken,
-        params: Vec<CTypeExpr>,
-        span: Span,
+        base: Token,
+        lt: Token,
+        params: Vec<CstType>,
+        gt: Token,
     },
-    Paren(Box<CTypeExpr>, Span),
+    Ref {
+        amp: Token,
+        inner: Box<CstType>,
+    },
+    MutRef {
+        amp: Token,
+        mut_kw: Token,
+        inner: Box<CstType>,
+    },
+    Tuple {
+        lparen: Token,
+        elems: Vec<CstType>,
+        rparen: Token,
+    },
 }
 
-impl TryFrom<CProgram> for Program {
-    type Error = CstError;
-    fn try_from(cprog: CProgram) -> Result<Self, Self::Error> {
-        let mut decls = Vec::with_capacity(cprog.decls.len());
-        for d in cprog.decls {
-            decls.push(d.try_into()?);
-        }
-        Ok(Program(decls))
+// ------------------------------------------------------------
+// Simple converter helpers: convert AST nodes into minimal CST
+// Note: These helpers assume source positions/spans are unknown; they
+// create tokens with dummy spans (0,0). In a real parser you'd attach
+// exact spans and original tokens.
+
+fn tk_ident(name: &str) -> Token {
+    Token::Ident(name.to_string(), Span(0, 0))
+}
+
+fn kw(s: &str) -> Token {
+    Token::Kw(s.to_string(), Span(0, 0))
+}
+
+fn punct(c: char) -> Token {
+    Token::Punct(c, Span(0, 0))
+}
+
+// The converter below is intentionally conservative: it tries to map
+// AST shapes to corresponding CST nodes while preserving structural
+// details (like parentheses, commas) using placeholder tokens.
+
+impl From<&crate::Program> for CstProgram {
+    fn from(ast: &crate::Program) -> Self {
+        let decls = ast.0.iter().map(|d| CstDecl::from(d)).collect();
+        CstProgram { decls, span: None }
     }
 }
 
-impl TryFrom<CDecl> for Decl {
-    type Error = CstError;
-    fn try_from(c: CDecl) -> Result<Self, Self::Error> {
-        use CDecl::*;
-        match c {
-            Function {
-                name,
-                params,
-                ret_ty,
-                body,
-                is_async,
-                ..
-            } => {
-                let ast_params = params
-                    .into_iter()
-                    .map(|p| p.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                let ast_body = body.try_into()?;
-                let ast_ret = match ret_ty {
-                    None => None,
-                    Some(t) => Some(t.try_into()?),
-                };
-                if is_async {
-                    Ok(Decl::AsyncFunction(name.0, ast_params, ast_ret, ast_body))
-                } else {
-                    Ok(Decl::Function(name.0, ast_params, ast_ret, ast_body))
-                }
-            }
-            Struct { name, members, .. } => {
-                let ast_members = members
-                    .into_iter()
-                    .map(|m| m.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Decl::Struct(name.0, ast_members))
-            }
-            Enum { name, variants, .. } => {
-                let ast_variants = variants
-                    .into_iter()
-                    .map(|v| v.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Decl::Enum(name.0, ast_variants))
-            }
-            Trait { name, methods, .. } => {
-                let ast_methods = methods
-                    .into_iter()
-                    .map(|m| m.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Decl::Trait(name.0, ast_methods))
-            }
-            Impl { name, items, .. } => {
-                let ast_items = items
-                    .into_iter()
-                    .map(|it| it.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Decl::Impl(name.0, ast_items))
-            }
-            ImplTrait {
-                trait_name,
-                for_name,
-                items,
-                ..
-            } => {
-                let ast_items = items
-                    .into_iter()
-                    .map(|it| it.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Decl::ImplTrait(trait_name.0, for_name.0, ast_items))
-            }
-            Let {
-                name,
-                ty,
-                value,
-                is_mut,
-                ..
-            } => {
-                let expr = value.try_into()?;
-                let ty_expr = match ty {
-                    None => None,
-                    Some(t) => Some(t.try_into()?),
-                };
-                if is_mut {
-                    Ok(Decl::LetMut(name.0, ty_expr, expr))
-                } else {
-                    Ok(Decl::Let(name.0, ty_expr, expr))
-                }
-            }
-            Import { path, .. } => Ok(Decl::Import(path.try_into()?)),
-            DerivedStruct {
-                derives,
-                struct_decl,
-                ..
-            } => {
-                let inner = (*struct_decl).try_into()?;
-                let derives_str = derives.into_iter().map(|d| d.0).collect();
-                Ok(Decl::DerivedStruct(derives_str, Box::new(inner)))
-            }
-        }
-    }
-}
-
-impl TryFrom<Box<CDecl>> for Decl {
-    type Error = CstError;
-    fn try_from(c: Box<CDecl>) -> Result<Self, Self::Error> {
-        (*c).try_into()
-    }
-}
-
-impl TryFrom<CParam> for Param {
-    type Error = CstError;
-    fn try_from(c: CParam) -> Result<Self, Self::Error> {
-        Ok(Param {
-            name: c.name.0,
-            ty: c.ty.try_into()?,
-            is_mut: c.is_mut,
-        })
-    }
-}
-
-impl TryFrom<CStructMember> for StructMember {
-    type Error = CstError;
-    fn try_from(c: CStructMember) -> Result<Self, Self::Error> {
-        let init = match c.init {
-            None => None,
-            Some(e) => Some(e.try_into()?),
-        };
-        Ok(StructMember {
-            name: c.name.0,
-            ty: c.ty.try_into()?,
-            init,
-        })
-    }
-}
-
-impl TryFrom<CEnumVariant> for (String, Option<Vec<TypeExpr>>) {
-    type Error = CstError;
-    fn try_from(c: CEnumVariant) -> Result<Self, Self::Error> {
-        let payload = match c.payload {
-            None => None,
-            Some(vec) => Some(
-                vec.into_iter()
-                    .map(|t| t.try_into())
-                    .collect::<Result<Vec<_>, _>>()?,
-            ),
-        };
-        Ok((c.name.0, payload))
-    }
-}
-
-impl TryFrom<CTraitMethod> for TraitMethod {
-    type Error = CstError;
-    fn try_from(c: CTraitMethod) -> Result<Self, Self::Error> {
-        let params = c
-            .params
-            .into_iter()
-            .map(|p| p.try_into())
-            .collect::<Result<Vec<_>, _>>()?;
-        Ok(TraitMethod::sig(c.name.0, params))
-    }
-}
-
-impl TryFrom<CBlock> for Block {
-    type Error = CstError;
-    fn try_from(c: CBlock) -> Result<Self, Self::Error> {
-        let stmts = c
-            .statements
-            .into_iter()
-            .map(|s| s.try_into())
-            .collect::<Result<Vec<_>, _>>()?;
-        let implicit_return = match c.implicit_return {
-            None => None,
-            Some(e) => Some(e.try_into()?),
-        };
-        Ok(Block {
-            statements: stmts,
-            implicit_return,
-        })
-    }
-}
-
-impl TryFrom<CStmt> for Stmt {
-    type Error = CstError;
-    fn try_from(c: CStmt) -> Result<Self, Self::Error> {
-        match c {
-            CStmt::LetDecl(boxed) => Ok(Stmt::LetDecl(boxed.try_into()?)),
-            CStmt::ExprStmt(e) => Ok(Stmt::ExprStmt(e.try_into()?)),
-            CStmt::Return(e) => Ok(Stmt::Return(e.try_into()?)),
-            CStmt::If(ifc) => Ok(Stmt::If(ifc.try_into()?)),
-            CStmt::While(cond, body) => Ok(Stmt::While(cond.try_into()?, body.try_into()?)),
-            CStmt::Loop(b) => Ok(Stmt::Loop(b.try_into()?)),
-            CStmt::Break(_) => Ok(Stmt::Break),
-            CStmt::For {
-                name, target, body, ..
-            } => Ok(Stmt::For(name.0, target.try_into()?, body.try_into()?)),
-        }
-    }
-}
-
-impl TryFrom<CIfStmt> for IfStmt {
-    type Error = CstError;
-    fn try_from(c: CIfStmt) -> Result<Self, Self::Error> {
-        Ok(IfStmt {
-            cond: Box::new(c.cond.try_into()?),
-            then_branch: c.then_branch.try_into()?,
-            else_branch: match c.else_branch {
-                None => None,
-                Some(b) => Some(b.try_into()?),
-            },
-        })
-    }
-}
-
-impl TryFrom<CMatchArm> for MatchArm {
-    type Error = CstError;
-    fn try_from(c: CMatchArm) -> Result<Self, Self::Error> {
-        Ok(MatchArm {
-            pattern: c.pattern.try_into()?,
-            body: c.body.try_into()?,
-        })
-    }
-}
-
-impl TryFrom<CPattern> for Pattern {
-    type Error = CstError;
-    fn try_from(c: CPattern) -> Result<Self, Self::Error> {
-        match c {
-            CPattern::Var(id) => Ok(Pattern::Var(id.0)),
-            CPattern::NumberInt(i) => Ok(Pattern::Number(Number::Int(i.0))),
-            CPattern::NumberFloat(f) => Ok(Pattern::Number(Number::Float(f.0))),
-            CPattern::Wildcard(_) => Ok(Pattern::Wildcard),
-            CPattern::Some(inner, _) => Ok(Pattern::Some(Box::new((*inner).try_into()?))),
-            CPattern::None(_) => Ok(Pattern::None),
-            CPattern::Variant(id, inner, _) => {
-                Ok(Pattern::Variant(id.0, Box::new((*inner).try_into()?)))
-            }
-        }
-    }
-}
-
-impl TryFrom<CTypeExpr> for TypeExpr {
-    type Error = CstError;
-    fn try_from(c: CTypeExpr) -> Result<Self, Self::Error> {
-        match c {
-            CTypeExpr::Int64(_) => Ok(TypeExpr::Int64),
-            CTypeExpr::Int32(_) => Ok(TypeExpr::Int32),
-            CTypeExpr::Float64(_) => Ok(TypeExpr::Float64),
-            CTypeExpr::Bool(_) => Ok(TypeExpr::Bool),
-            CTypeExpr::String(_) => Ok(TypeExpr::String),
-            CTypeExpr::Custom(id) => Ok(TypeExpr::Custom(id.0)),
-            CTypeExpr::Generic { id, params, .. } => {
-                let out = params
-                    .into_iter()
-                    .map(|p| p.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(TypeExpr::Generic(id.0, out))
-            }
-            CTypeExpr::Paren(inner, _) => (*inner).try_into(),
-        }
-    }
-}
-
-impl TryFrom<CPath> for Path {
-    type Error = CstError;
-    fn try_from(c: CPath) -> Result<Self, Self::Error> {
-        let mut out_parts = c.parts.into_iter().map(|p| p.0).collect::<Vec<_>>();
-        if out_parts.is_empty() {
-            return Err(CstError::new("empty import path", Some(c.span)));
-        }
-        let first = out_parts.remove(0);
-        let mut cur = PathExpr::Single(first);
-        for part in out_parts {
-            cur = PathExpr::Nested(Box::new(cur), part);
-        }
-        Ok(cur)
-    }
-}
-
-impl TryFrom<CExpr> for Expr {
-    type Error = CstError;
-    fn try_from(c: CExpr) -> Result<Self, Self::Error> {
-        use CExpr::*;
-        match c {
-            Identifier(id) => Ok(Expr::Identifier(id.0)),
-            NumberInt(i) => Ok(Expr::Number(Number::Int(i.0))),
-            NumberFloat(f) => Ok(Expr::Number(Number::Float(f.0))),
-            String(s) => Ok(Expr::String(s.0)),
-            Bool(b) => {
-                let name = if b.0 {
-                    "true".to_string()
-                } else {
-                    "false".to_string()
-                };
-                Ok(Expr::Identifier(name))
-            }
-            Match { value, arms, .. } => {
-                let val = (*value).try_into()?;
-                let ast_arms = arms
-                    .into_iter()
-                    .map(|a| a.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Expr::Match {
-                    value: Box::new(val),
-                    arms: ast_arms,
+impl From<&crate::Decl> for CstDecl {
+    fn from(ast: &crate::Decl) -> Self {
+        match ast {
+            crate::Decl::Function(name, param_groups, ret, body) => {
+                CstDecl::Function(CstFunction {
+                    async_kw: None,
+                    fn_kw: kw("fn"),
+                    name: tk_ident(name),
+                    generics: None,
+                    param_groups: param_groups
+                        .iter()
+                        .map(|group| group.iter().map(|p| CstParam::from(p)).collect())
+                        .collect(),
+                    ret_type: ret.as_ref().map(|t| (punct('-'), CstType::from(t))),
+                    body: CstBlock::from(body),
+                    span: None,
                 })
             }
-            Call { name, args, .. } => {
-                let ast_args = args
-                    .into_iter()
-                    .map(|a| a.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Expr::Call(name.0, ast_args))
+            crate::Decl::AsyncFunction(name, param_groups, ret, body) => {
+                CstDecl::AsyncFunction(CstFunction {
+                    async_kw: Some(kw("async")),
+                    fn_kw: kw("fn"),
+                    name: tk_ident(name),
+                    generics: None,
+                    param_groups: param_groups
+                        .iter()
+                        .map(|group| group.iter().map(|p| CstParam::from(p)).collect())
+                        .collect(),
+                    ret_type: ret.as_ref().map(|t| (punct('-'), CstType::from(t))),
+                    body: CstBlock::from(body),
+                    span: None,
+                })
             }
-            AssocCall {
-                ty, method, args, ..
-            } => {
-                let ast_args = args
-                    .into_iter()
-                    .map(|a| a.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Expr::AssocCall(ty.0, method.0, ast_args))
-            }
-            MethodCall {
-                target,
-                method,
-                args,
-                ..
-            } => {
-                let t = (*target).try_into()?;
-                let ast_args = args
-                    .into_iter()
-                    .map(|a| a.try_into())
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Expr::MethodCall(Box::new(t), method.0, ast_args))
-            }
-            StructLit { name, fields, .. } => {
-                let ast_fields = fields
-                    .into_iter()
-                    .map(|(id, e)| Ok((id.0, e.try_into()?)))
-                    .collect::<Result<Vec<_>, _>>()?;
-                Ok(Expr::StructLit(name.0, ast_fields))
-            }
-            Closure { params, body, .. } => {
-                let names = params.into_iter().map(|p| p.0).collect();
-                let body_ast = (*body).try_into()?;
-                Ok(Expr::Closure(names, Box::new(body_ast)))
-            }
-            Add(l, r, _) => Ok(Expr::Add(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            Sub(l, r, _) => Ok(Expr::Sub(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            Mul(l, r, _) => Ok(Expr::Mul(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            Div(l, r, _) => Ok(Expr::Div(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            Concat(l, r, _) => Ok(Expr::Concat(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            Equal(l, r, _) => Ok(Expr::Equal(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            NotEqual(l, r, _) => Ok(Expr::NotEqual(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            Less(l, r, _) => Ok(Expr::Less(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            LessEq(l, r, _) => Ok(Expr::LessEq(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            Greater(l, r, _) => Ok(Expr::Greater(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
-            GreaterEq(l, r, _) => Ok(Expr::GreaterEq(
-                Box::new((*l).try_into()?),
-                Box::new((*r).try_into()?),
-                Span { start: 0, end: 0 },
-            )),
+            crate::Decl::Struct(name, tparams, members) => CstDecl::Struct(CstStruct {
+                struct_kw: kw("struct"),
+                name: tk_ident(name),
+                type_params: if tparams.is_empty() {
+                    None
+                } else {
+                    Some(tparams.iter().map(|s| tk_ident(s)).collect())
+                },
+                members: members.iter().map(|m| CstStructMember::from(m)).collect(),
+                span: None,
+            }),
+            crate::Decl::Enum(name, variants) => CstDecl::Enum(CstEnum {
+                enum_kw: kw("enum"),
+                name: tk_ident(name),
+                variants: variants
+                    .iter()
+                    .map(|(n, opt)| {
+                        (
+                            tk_ident(n),
+                            opt.as_ref()
+                                .map(|v| v.iter().map(|t| CstType::from(t)).collect()),
+                        )
+                    })
+                    .collect(),
+            }),
+            crate::Decl::Trait(name, methods) => CstDecl::Trait(CstTrait {
+                trait_kw: kw("trait"),
+                name: tk_ident(name),
+                methods: methods.iter().map(|m| CstTraitMethod::from(m)).collect(),
+            }),
+            crate::Decl::Impl(name, items) => CstDecl::Impl(CstImpl {
+                impl_kw: kw("impl"),
+                target: tk_ident(name),
+                items: items.iter().map(|d| CstDecl::from(d)).collect(),
+            }),
+            crate::Decl::ImplTrait(trait_name, for_name, items) => CstDecl::Impl(CstImpl {
+                impl_kw: kw("impl"),
+                target: tk_ident(&format!("{} for {}", trait_name, for_name)),
+                items: items.iter().map(|d| CstDecl::from(d)).collect(),
+            }),
+            crate::Decl::Let(name, opt_ty, expr) => CstDecl::Let(CstLet::from((
+                true,
+                false,
+                name.clone(),
+                opt_ty.clone(),
+                expr.clone(),
+            ))),
+            crate::Decl::LetMut(name, opt_ty, expr) => CstDecl::Let(CstLet::from((
+                false,
+                true,
+                name.clone(),
+                opt_ty.clone(),
+                expr.clone(),
+            ))),
+            crate::Decl::Import(path) => CstDecl::Import(CstImport::from(path)),
+            crate::Decl::DerivedStruct(attrs, inner) => CstDecl::Derived(CstDerived {
+                attrs: attrs.iter().map(|a| tk_ident(a)).collect(),
+                inner: Box::new(CstDecl::from(inner.as_ref())),
+            }),
         }
     }
 }
 
-impl From<IntToken> for i64 {
-    fn from(i: IntToken) -> Self {
-        i.0
+impl From<&crate::StructMember> for CstStructMember {
+    fn from(ast: &crate::StructMember) -> Self {
+        CstStructMember {
+            name: tk_ident(&ast.name),
+            colon: punct(':'),
+            ty: CstType::from(&ast.ty),
+            equal: ast.init.as_ref().map(|_| punct('=')),
+            init_expr: ast.init.as_ref().map(|e| Box::new(CstExpr::from(e))),
+        }
     }
 }
-impl From<FloatToken> for f64 {
-    fn from(f: FloatToken) -> Self {
-        f.0
+
+impl From<&crate::Param> for CstParam {
+    fn from(ast: &crate::Param) -> Self {
+        CstParam {
+            name: tk_ident(&ast.name),
+            colon: punct(':'),
+            ty: CstType::from(&ast.ty),
+            is_mut: if ast.is_mut { Some(kw("mut")) } else { None },
+        }
     }
 }
-impl From<StrToken> for String {
-    fn from(s: StrToken) -> Self {
-        s.0
+
+impl From<&crate::Block> for CstBlock {
+    fn from(ast: &crate::Block) -> Self {
+        CstBlock {
+            lbrace: punct('{'),
+            statements: ast.statements.iter().map(|s| CstStmt::from(s)).collect(),
+            implicit_return: ast
+                .implicit_return
+                .as_ref()
+                .map(|e| Box::new(CstExpr::from(e))),
+            rbrace: punct('}'),
+        }
     }
 }
-impl From<IdentToken> for String {
-    fn from(i: IdentToken) -> Self {
-        i.0
+
+impl From<&crate::Stmt> for CstStmt {
+    fn from(ast: &crate::Stmt) -> Self {
+        match ast {
+            crate::Stmt::LetDecl(d) => CstStmt::LetDecl(Box::new(CstDecl::from(d))),
+            crate::Stmt::ExprStmt(e) => CstStmt::ExprStmt(Box::new(CstExpr::from(e))),
+            crate::Stmt::Return(e) => CstStmt::Return(kw("return"), Box::new(CstExpr::from(e))),
+            crate::Stmt::If(ifst) => CstStmt::If(CstIf::from(ifst)),
+            crate::Stmt::While(cond, blk) => {
+                CstStmt::While(Box::new(CstExpr::from(cond)), CstBlock::from(blk))
+            }
+            crate::Stmt::Loop(blk) => CstStmt::Loop(CstBlock::from(blk)),
+            crate::Stmt::Break => CstStmt::Break(kw("break")),
+            crate::Stmt::For(ident, expr, blk) => CstStmt::For(
+                tk_ident(ident),
+                kw("in"),
+                Box::new(CstExpr::from(expr)),
+                CstBlock::from(blk),
+            ),
+            crate::Stmt::Match(expr) => CstStmt::Match(Box::new(CstExpr::from(expr)), kw("match")),
+        }
+    }
+}
+
+impl From<&crate::IfStmt> for CstIf {
+    fn from(ast: &crate::IfStmt) -> Self {
+        CstIf {
+            if_kw: kw("if"),
+            cond: Box::new(CstExpr::from(&ast.cond)),
+            then_block: CstBlock::from(&ast.then_branch),
+            else_kw: ast.else_branch.as_ref().map(|_| kw("else")),
+            else_block: ast.else_branch.as_ref().map(|b| CstBlock::from(b)),
+        }
+    }
+}
+
+impl From<&crate::Expr> for CstExpr {
+    fn from(ast: &crate::Expr) -> Self {
+        match ast {
+            crate::Expr::Identifier(s) => CstExpr::Identifier(tk_ident(s)),
+            crate::Expr::Number(n) => match n {
+                crate::Number::Int(i) => CstExpr::Number(Token::Number(i.to_string(), Span(0, 0))),
+                crate::Number::Float(f) => {
+                    CstExpr::Number(Token::Number(f.to_string(), Span(0, 0)))
+                }
+            },
+            crate::Expr::String(s) => CstExpr::StringLit(Token::StringLit(s.clone(), Span(0, 0))),
+            crate::Expr::Reference(e) => CstExpr::Reference(punct('&'), Box::new(CstExpr::from(e))),
+            crate::Expr::MutReference(e) => {
+                CstExpr::MutReference(punct('&'), Box::new(CstExpr::from(e)))
+            }
+            crate::Expr::Tuple(elems) => CstExpr::Tuple(
+                punct('('),
+                elems.iter().map(|e| CstExpr::from(e)).collect(),
+                punct(')'),
+            ),
+            crate::Expr::Call(callee, args) => CstExpr::Call {
+                callee: Box::new(CstExpr::from(callee)),
+                lparen: punct('('),
+                args: args
+                    .iter()
+                    .map(|a| (CstExpr::from(a), Some(punct(','))))
+                    .collect(),
+                rparen: punct(')'),
+            },
+            crate::Expr::AssocCall(left, name, args) => CstExpr::AssocCall {
+                path_left: tk_ident(left),
+                coloncolon: punct(':'),
+                name: tk_ident(name),
+                lparen: punct('('),
+                args: args.iter().map(|a| CstExpr::from(a)).collect(),
+                rparen: punct(')'),
+            },
+            crate::Expr::MethodCall(receiver, name, args) => CstExpr::MethodCall {
+                receiver: Box::new(CstExpr::from(receiver)),
+                dot: punct('.'),
+                name: tk_ident(name),
+                lparen: punct('('),
+                args: args.iter().map(|a| CstExpr::from(a)).collect(),
+                rparen: punct(')'),
+            },
+            crate::Expr::StructLit(name, fields) => CstExpr::StructLit {
+                name: tk_ident(name),
+                lbrace: punct('{'),
+                fields: fields
+                    .iter()
+                    .map(|(n, e)| (tk_ident(n), punct(':'), CstExpr::from(e), Some(punct(','))))
+                    .collect(),
+                rbrace: punct('}'),
+            },
+            crate::Expr::Closure(params, body) => CstExpr::Closure {
+                pipe_l: punct('|'),
+                params: params.iter().map(|p| CstParam::from(p)).collect(),
+                pipe_r: punct('|'),
+                arrow: None,
+                body: Box::new(CstExpr::from(body)),
+            },
+            crate::Expr::Variant(name, maybe) => CstExpr::Variant {
+                name: tk_ident(name),
+                lparen: maybe.as_ref().map(|_| punct('(')),
+                inner: maybe.as_ref().map(|e| Box::new(CstExpr::from(e))),
+                rparen: maybe.as_ref().map(|_| punct(')')),
+            },
+            crate::Expr::Pipe(l, r) => CstExpr::Pipe {
+                left: Box::new(CstExpr::from(l)),
+                pipe: punct('|'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Index(t, i) => CstExpr::Index {
+                target: Box::new(CstExpr::from(t)),
+                lbrack: punct('['),
+                idx: Box::new(CstExpr::from(i)),
+                rbrack: punct(']'),
+            },
+            crate::Expr::FieldAccess(t, name) => CstExpr::FieldAccess {
+                target: Box::new(CstExpr::from(t)),
+                dot: punct('.'),
+                name: tk_ident(name),
+            },
+            crate::Expr::DotAccess(t, name) => CstExpr::DotAccess {
+                target: Box::new(CstExpr::from(t)),
+                dot: punct('.'),
+                name: tk_ident(name),
+            },
+            crate::Expr::Add(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('+'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Sub(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('-'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Mul(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('*'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Div(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('/'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Concat(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('+'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Equal(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('='),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::NotEqual(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('!'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Less(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('<'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::LessEq(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('<'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Greater(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('>'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::GreaterEq(l, r) => CstExpr::Binary {
+                left: Box::new(CstExpr::from(l)),
+                op: punct('>'),
+                right: Box::new(CstExpr::from(r)),
+            },
+            crate::Expr::Match { value, arms } => CstExpr::Match {
+                match_kw: kw("match"),
+                value: Box::new(CstExpr::from(value)),
+                lbrace: punct('{'),
+                arms: arms.iter().map(|a| CstMatchArm::from(a)).collect(),
+                rbrace: punct('}'),
+            },
+        }
+    }
+}
+
+impl From<&crate::MatchArm> for CstMatchArm {
+    fn from(ast: &crate::MatchArm) -> Self {
+        CstMatchArm {
+            pattern: CstPattern::from(&ast.pattern),
+            fat_arrow: punct('='),
+            body: CstBlock::from(&ast.body),
+        }
+    }
+}
+
+impl From<&crate::Pattern> for CstPattern {
+    fn from(ast: &crate::Pattern) -> Self {
+        match ast {
+            crate::Pattern::Var(s) => CstPattern::Var(tk_ident(s)),
+            crate::Pattern::Number(n) => match n {
+                crate::Number::Int(i) => {
+                    CstPattern::Number(Token::Number(i.to_string(), Span(0, 0)))
+                }
+                crate::Number::Float(f) => {
+                    CstPattern::Number(Token::Number(f.to_string(), Span(0, 0)))
+                }
+            },
+            crate::Pattern::Wildcard => CstPattern::Wildcard(punct('_')),
+            crate::Pattern::Some(p) => CstPattern::Some(kw("Some"), Box::new(CstPattern::from(p))),
+            crate::Pattern::None => CstPattern::None(kw("None")),
+            crate::Pattern::Variant(name, p) => {
+                CstPattern::Variant(tk_ident(name), Box::new(CstPattern::from(p)))
+            }
+        }
+    }
+}
+
+impl From<&crate::TypeExpr> for CstType {
+    fn from(ast: &crate::TypeExpr) -> Self {
+        match ast {
+            crate::TypeExpr::Int64 => CstType::Simple(kw("i64")),
+            crate::TypeExpr::Int32 => CstType::Simple(kw("i32")),
+            crate::TypeExpr::Float64 => CstType::Simple(kw("f64")),
+            crate::TypeExpr::Float32 => CstType::Simple(kw("f32")),
+            crate::TypeExpr::Bool => CstType::Simple(kw("bool")),
+            crate::TypeExpr::String => CstType::Simple(kw("String")),
+            crate::TypeExpr::Custom(s) => CstType::Simple(tk_ident(s)),
+            crate::TypeExpr::Generic(base, params) => CstType::Generic {
+                base: tk_ident(base),
+                lt: punct('<'),
+                params: params.iter().map(|p| CstType::from(p)).collect(),
+                gt: punct('>'),
+            },
+            crate::TypeExpr::MutableReference(inner) => CstType::MutRef {
+                amp: punct('&'),
+                mut_kw: kw("mut"),
+                inner: Box::new(CstType::from(inner)),
+            },
+            crate::TypeExpr::Reference(inner) => CstType::Ref {
+                amp: punct('&'),
+                inner: Box::new(CstType::from(inner)),
+            },
+            crate::TypeExpr::Tuple(elems) => CstType::Tuple {
+                lparen: punct('('),
+                elems: elems.iter().map(|e| CstType::from(e)).collect(),
+                rparen: punct(')'),
+            },
+        }
+    }
+}
+
+impl From<&crate::PathExpr> for CstImport {
+    fn from(ast: &crate::PathExpr) -> Self {
+        let mut parts = Vec::new();
+        fn collect(p: &crate::PathExpr, out: &mut Vec<Token>) {
+            match p {
+                crate::PathExpr::Single(s) => out.push(tk_ident(s)),
+                crate::PathExpr::Nested(parent, name) => {
+                    collect(parent, out);
+                    out.push(tk_ident(name));
+                }
+            }
+        }
+        collect(ast, &mut parts);
+        CstImport {
+            import_kw: kw("import"),
+            path: parts,
+        }
     }
 }

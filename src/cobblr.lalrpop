@@ -142,6 +142,7 @@ ImplBody: Vec<ast::Decl> = {
         v
     }
 };
+
 pub FunctionDecl: ast::Decl = {
     "fn" <id:"identifier"> "(" <params:ParamList> ")" <body:Block> =>
         ast::Decl::Function(id, vec![params], None, body),
@@ -314,10 +315,15 @@ pub Expr: ast::Expr = {
     <l:Expr> "+" <r:Expr> => ast::Expr::Add(Box::new(l), Box::new(r)),
     <l:Expr> "-" <r:Expr> => ast::Expr::Sub(Box::new(l), Box::new(r)),
     <l:Expr> "++" <r:Expr> => ast::Expr::Concat(Box::new(l), Box::new(r)),
+    <l:Expr> "&" <r:Expr> => ast::Expr::And(Box::new(l), Box::new(r)),
+    <l:Expr> "|" <r:Expr> => ast::Expr::Or(Box::new(l), Box::new(r)),
+    <l:Expr> "^" <r:Expr> => ast::Expr::Xor(Box::new(l), Box::new(r)),
 
     #[precedence(level="3")]
     #[assoc(side="left")]
     <l:Expr> "==" <r:Expr> => ast::Expr::Equal(Box::new(l), Box::new(r)),
+    <l:Expr> "||" <r:Expr> => ast::Expr::LogicalOr(Box::new(l), Box::new(r)),
+    <l:Expr> "&&" <r:Expr> => ast::Expr::LogicalAnd(Box::new(l), Box::new(r)),
     <l:Expr> "!=" <r:Expr> => ast::Expr::NotEqual(Box::new(l), Box::new(r)),
     <l:Expr> "<"  <r:Expr> => ast::Expr::Less(Box::new(l), Box::new(r)),
     <l:Expr> "<=" <r:Expr> => ast::Expr::LessEq(Box::new(l), Box::new(r)),
@@ -326,7 +332,6 @@ pub Expr: ast::Expr = {
 
     #[precedence(level="4")] #[assoc(side="left")]
     <l:Expr> "|>" <r:Expr> => ast::Expr::Pipe(Box::new(l), Box::new(r)),
-
 }
 
 Postfix: ast::Expr = {
@@ -448,6 +453,7 @@ extern {
     ">=" => Token::GreaterEqual,
     "<" => Token::Less,
     ">" => Token::Greater,
+    "^" => Token::Carat,
     "(" => Token::LParen,
     ")" => Token::RParen,
     "{" => Token::LBrace,

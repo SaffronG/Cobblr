@@ -37,7 +37,7 @@ impl Point {
     }
 }
 
-fn main () -> i32 {
+fn main () -> Result<String>{
     // Struct Init
     let p1 = Point::new(9,10);
 

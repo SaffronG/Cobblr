@@ -120,6 +120,8 @@ pub enum Token {
     Less,
     #[token(">")]
     Greater,
+    #[token("^")]
+    Carat,
     #[token("(")]
     LParen,
     #[token(")")]

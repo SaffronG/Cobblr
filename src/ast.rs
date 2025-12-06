@@ -131,6 +131,10 @@ pub enum Expr {
     // String concat
     Concat(Box<Expr>, Box<Expr>),
 
+    // Logical Operators
+    LogicalOr(Box<Expr>, Box<Expr>),
+    LogicalAnd(Box<Expr>, Box<Expr>),
+
     // Comparisons
     Equal(Box<Expr>, Box<Expr>),
     NotEqual(Box<Expr>, Box<Expr>),
@@ -138,6 +142,12 @@ pub enum Expr {
     LessEq(Box<Expr>, Box<Expr>),
     Greater(Box<Expr>, Box<Expr>),
     GreaterEq(Box<Expr>, Box<Expr>),
+
+    // Bitwise
+    Or(Box<Expr>, Box<Expr>),
+    And(Box<Expr>, Box<Expr>),
+    Xor(Box<Expr>, Box<Expr>),
+    Nor(Box<Expr>, Box<Expr>),
 }
 
 #[derive(Debug, Clone)]
