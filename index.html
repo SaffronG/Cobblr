@@ -1,389 +1,248 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cobblr — Language Tour & Tutorial</title>
-  <style>
-    :root { --bg:#0f1724; --card:#0b1220; --accent:#7dd3fc; --muted:#94a3b8; --glass:rgba(255,255,255,0.03); }
-    * { box-sizing:border-box; }
-    body {
-      margin:0;
-      font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-      color:#e6eef6;
-      background:linear-gradient(180deg,#071023 0%,#071827 60%);
-    }
-    .layout { display:grid; grid-template-columns:300px 1fr; min-height:100vh; gap:24px; padding:28px; }
-    header { grid-column:1/-1; display:flex; align-items:center; gap:16px; }
-    .logo {
-      height:56px; width:56px; border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),#60a5fa);
-      display:flex; align-items:center; justify-content:center;
-      color:#042027; font-weight:800;
-      box-shadow:0 6px 18px rgba(7,18,36,0.6);
-    }
-    h1 { margin:0; font-size:20px; }
-    .subtitle { color:var(--muted); font-size:13px; }
-
-    nav {
-      background:linear-gradient(180deg,var(--card),rgba(11,18,32,0.88));
-      padding:20px; border-radius:12px;
-      box-shadow:0 8px 20px rgba(2,6,23,0.6);
-      height:calc(100vh - 136px);
-      overflow:auto;
-    }
-    nav h2 { color:var(--accent); font-size:13px; margin:6px 0 12px; }
-    nav a {
-      display:block; color:#cfe9f6; text-decoration:none;
-      padding:8px 10px; border-radius:8px;
-      margin:4px 0; font-size:14px;
-    }
-    nav a:hover { background:var(--glass); }
-
-    main {
-      padding:20px;
-      background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
-      border-radius:12px;
-      box-shadow:0 8px 30px rgba(3,9,20,0.6);
-      overflow:auto;
-    }
-    section { margin-bottom:28px; }
-    section h3 { margin:6px 0 10px; color:var(--accent); }
-    p { color:var(--muted); line-height:1.5; }
-
-    .card {
-      background:rgba(255,255,255,0.02);
-      padding:14px; border-radius:10px;
-      margin-top:12px;
-    }
-    pre {
-      background:#071827; padding:16px;
-      border-radius:8px;
-      overflow:auto; color:#d6f1ff;
-      margin:0;
-    }
-    code {
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      font-size:13px;
-    }
-
-    .example {
-      display:grid; grid-template-columns:1fr 220px;
-      gap:12px; align-items:start;
-    }
-    .ex-meta {
-      background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);
-      padding:10px; border-radius:8px;
-    }
-
-    .badge {
-      display:inline-block; padding:6px 8px;
-      border-radius:999px;
-      background:rgba(125,211,252,0.08);
-      color:var(--accent); font-weight:600;
-      font-size:12px;
-    }
-
-    .small { font-size:13px; color:var(--muted); }
-
-    .copy {
-      background:transparent;
-      border:1px solid rgba(255,255,255,0.04);
-      color:var(--accent);
-      padding:8px; border-radius:8px;
-      cursor:pointer;
-    }
-
-    footer {
-      grid-column:1/-1;
-      padding:8px 28px;
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    @media (max-width:880px) {
-      .layout { grid-template-columns:1fr; padding:18px; }
-      nav { height:auto; }
-      .example { grid-template-columns:1fr; }
-    }
-  </style>
-</head>
-<body>
-  <div class="layout">
-    <header>
-      <div class="logo">Cb</div>
-      <div>
-        <h1>Cobblr — Language Tour</h1>
-        <div class="subtitle">A concise, example-rich tutorial covering the Cobblr grammar and features</div>
-      </div>
-    </header>
-
-    <nav>
-      <h2>Contents</h2>
-      <a href="#intro">Introduction</a>
-      <a href="#declarations">Top-level Declarations</a>
-      <a href="#types">Types & Type Expressions</a>
-      <a href="#values">Literals & Expressions</a>
-      <a href="#statements">Statements & Blocks</a>
-      <a href="#patterns">Pattern Matching</a>
-      <a href="#structs">Structs & Struct Literals</a>
-      <a href="#enums">Enums</a>
-      <a href="#traits">Traits & Impl</a>
-      <a href="#functions">Functions & Closures</a>
-      <a href="#modules">Imports & Paths</a>
-      <a href="#examples">Complete Examples</a>
-      <a href="#cheatsheet">Cheat Sheet</a>
-    </nav>
-
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cobblr CLI Tutorial</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #ffffff;
+        color: #1a1a1a;
+        margin: 0;
+        padding: 0;
+        line-height: 1.6;
+      }
+      header {
+        background: #223b2a;
+        padding: 20px;
+        text-align: center;
+        font-size: 2rem;
+        font-weight: bold;
+        color: #b6ffb0;
+        border-bottom: 3px solid #3c5f47;
+      }
+      main {
+        padding: 20px 15%;
+      }
+      h2 {
+        color: #2d4a35;
+        margin-top: 40px;
+      }
+      code,
+      pre {
+        background: transparent;
+        padding: 0;
+        margin: 0;
+        border: none;
+      }
+      .section {
+        margin-bottom: 40px;
+      }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css"
+    />
+    <script>
+      hljs.highlightAll();
+    </script>
+  </head>
+  <body>
+    <header>Make a simple CLI Program In Cobblr</header>
     <main>
-      <section id="intro">
-        <h3>Introduction</h3>
-        <p>This tutorial explains every major feature present in the Cobblr grammar. Each section includes syntax, explanation, and copyable examples.</p>
-        <div class="card small">Note: this is a <em>syntactic</em> tour — semantics (type-checker/runtime) vary by implementation.</div>
-      </section>
+      <div class="section">
+        <p>
+          Prerequisites: Basic knowledge in programming (functions variables,
+          data types, etc.) This tutorial does not assume that you know Cobblr
+          Syntax.
+        </p>
+      </div>
 
-      <section id="declarations">
-        <h3>Top-level Declarations</h3>
-        <p>Cobblr supports functions, structs, enums, traits, impls, lets, imports, and derived structs.</p>
-        <div class="card example">
-          <pre><code>fn greet(name: string) {
-    println("Hello " ++ name);
-}
+      <div class="section">
+        <h2>Step 1: Creating a Project!</h2>
+        <p>
+          Cobblr uses a simple project structure with an optional config.Toml
+          file. So, to start, create a folder named CLI-WC-Cobblr/. Next, you
+          need to move inside of the folder (using cd ‘CLI-WC-Cobblr’) then
+          create your main.cblr file.
+        </p>
+      </div>
 
-async fn fetch_data() -> string {
-</t>// ...
-}
-
-let version: string = "0.1";
-
-struct Point { x: int, y: int }
-enum Result<T> { Ok(T), Err(string) }
-
-trait Drawable { fn draw(); }
-impl Canvas { fn draw() { /* ... */ } }
-
-use std::io;
-import my::module;</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Declarations</div>
-            <p class="small">Core top-level constructs.</p>
-            <button class="copy" data-target="declarations">Copy</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="types">
-        <h3>Types & Type Expressions</h3>
-        <p>Types include primitives, references, generics, and custom types.</p>
-        <div class="card">
-          <pre><code>int, float, string, bool
-&int
-&mut int
-MyType
-Result<string>
-(&mut (Result<int>))</code></pre>
-        </div>
-      </section>
-
-      <section id="values">
-        <h3>Literals & Expressions</h3>
-        <p>Expressions support arithmetic, comparisons, concatenation, and postfix operations.</p>
-        <div class="card example">
-          <pre><code>42 + 3 * (2 - 1)
-"hello" ++ " world"
-x == y
-x >= 10
-vec::new()
-myStruct.field
-arr[2]
-obj.method(arg1, arg2)</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Expressions</div>
-            <p class="small">Postfix → *,/ → +,- → ++ → comparisons</p>
-            <button class="copy" data-target="values">Copy</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="statements">
-        <h3>Statements & Blocks</h3>
-        <p>Blocks contain statements and may end with an implicit return expression.</p>
-        <div class="card example">
-          <pre><code>{
-  let x: int = 10;
-  if x > 5 {
-    return x;
-  } else {
-    return 0;
-  }
-}
-
-while condition { }
-for i in collection { }
-loop { break; }</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Control Flow</div>
-            <p class="small">Implicit return from block tail expression.</p>
-            <button class="copy" data-target="statements">Copy</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="patterns">
-        <h3>Pattern Matching</h3>
-        <p>Used in match arms; supports literals, variables, wildcard, and enum variants.</p>
-        <div class="card example">
-          <pre><code>match value {
-  0 => { println("zero") },
-  Some(x) => { println("some " ++ x) },
-  None => { println("none") },
-  _ => { println("other") }
+      <div class="section">
+        <h2>Step 2: Hello World!</h2>
+        <p>
+          Following the age-old standard of creating a project, let's start with
+          printing “Hello World!”. In your main.cblr file add the following
+          code:
+        </p>
+        <pre><code class="language-rust">fn main() -> () {
+	std::io::println("Hello World!")
 }</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Match</div>
-            <p class="small">Each arm uses pattern => block.</p>
-            <button class="copy" data-target="patterns">Copy</button>
-          </div>
-        </div>
-      </section>
+        <p>
+          In the above code snippet, we define the entry point to our program,
+          main, that returns an empty value, or void. Within this function we
+          use the println function defined in the standard library std::io and
+          output “Hello World!” to the screen. Now you’ve successfully used
+          Cobblr to create a working “Hello World!” program!
+        </p>
+      </div>
 
-      <section id="structs">
-        <h3>Structs & Struct Literals</h3>
-        <p>Structs define fields; construct using struct literals.</p>
-        <div class="card example">
-          <pre><code>struct Person { name: string, age: int }
-
-let p = Person <- (name: "Ada", age: 42);
-
-struct Config {
-  host: string = "localhost",
-  port: int = 8080,
+      <div class="section">
+        <h2>Step 3: Getting and using Command Args</h2>
+        <p>
+          Following the C-like way of handling command-line arguments, in
+          Cobblr, we just use the arguments of the main function as, in order,
+          the length of the parameter vector, and then the vector itself. That
+          looks as follows:
+        </p>
+        <pre><code class="language-rust">fn main(len: int, args: Vec&lt;String&gt;) -> () {
+	std::io::println("Hello World!")
 }</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Structs</div>
-            <p class="small">Use Name &lt;- (field:value,...)</p>
-            <button class="copy" data-target="structs">Copy</button>
-          </div>
-        </div>
-      </section>
-
-      <section id="enums">
-        <h3>Enums</h3>
-        <p>Enums hold variants with optional data.</p>
-        <div class="card example">
-          <pre><code>enum Option<T> { Some(T), None }
-
-let x: Option<int> = Option::Some(42);
-
-match x {
-  Option::Some(v) => { println(v) },
-  Option::None => { println("none") },
+        <p>
+          Ok, so now that we’ve successfully read input from the command-line,
+          how can we use that input? Well, we simply use the variable name that
+          we defined when collecting the inputs.
+        </p>
+        <p>
+          Lets then change our program to print “Hello &lt;name&gt;!” where
+          &lt;name&gt; is whatever name the user inputs as a program argument.
+          And remember, the first item in a vector of command-line arguments is
+          the name of the executable file! So, we need to get the second item in
+          the vector and print that. Also notice the :s within the {} curly
+          braces, this indicates that we want to cast the value into a String
+        </p>
+        <pre><code class="language-rust">fn main (len: int, args; Vec&lt;String&gt;) -> () {
+	std::io::println("Hello {:s}!", args[1])
 }</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Enums</div>
-            <p class="small">Variants may carry values.</p>
-            <button class="copy" data-target="enums">Copy</button>
-          </div>
-        </div>
-      </section>
+        <p>
+          Perfect! Now, if we run this program using our cobblr run main.cblr
+          “Chase” command, then we will get the output:
+        </p>
+        <p>"Hello Chase!"</p>
+      </div>
 
-      <section id="traits">
-        <h3>Traits & Implementation</h3>
-        <p>Traits define method signatures; impls attach method bodies.</p>
-        <div class="card example">
-          <pre><code>trait Logger { fn log(message: string); }
-
-impl MyStruct {
-  fn log(message: string) { println(message); }
-}
-
-impl Logger for MyStruct {
-  fn log(message: string) { }
+      <div class="section">
+        <h2>Step 4: Using Macros for Readability</h2>
+        <p>In our program we are currently using:</p>
+        <p>std::io::println("Hello {:s}!, args[1])</p>
+        <p>
+          But Cobblr allows a very useful tool to increase readability, macros.
+          There is a list of pre-defined macros for the std::lib and these are
+          automatically included in a new Cobblr project; they can be ignored by
+          putting the following in your config.Toml file.
+        </p>
+        <pre><code class="language-rust">[include]
+exclude = ["std::macros::*"]</code></pre>
+        <p>
+          With that aside, let’s look at what the default macro for println
+          looks like.
+        </p>
+        <pre><code class="language-rust">fn main(len: Int, args: Vec&lt;String&gt;) -> () {
+	println!("Hello {:s}", args[1])
 }</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Traits</div>
-            <p class="small">Traits declare signatures; impls provide bodies.</p>
-            <button class="copy" data-target="traits">Copy</button>
-          </div>
-        </div>
-      </section>
+        <p>
+          As you can see, the macro is denoted by using the ! bang, character
+          after the function. It is recommended to use this style of macro
+          definition when creating your own macros.
+        </p>
+      </div>
 
-      <section id="functions">
-        <h3>Functions & Closures</h3>
-        <p>Functions support typed parameters, return types, and async. Closures use |params| forms.</p>
-        <div class="card example">
-          <pre><code>fn add(a: int, b: int) -> int {
-  a + b
-}
+      <div class="section">
+        <h2>Step 5: Error Handling</h2>
+        <p>
+          The more experienced programmer may have noticed our lack of error
+          handling and dealing with mishandled inputs, let's see how we can deal
+          with this situation.
+        </p>
+        <p>
+          We can use a match statement here to quickly handle if there is no
+          input vs one input, vs any other adverse possibility.
+        </p>
+        <pre><code class="language-rust">use std::Error;
 
-async fn get_number() -> int { 10 }
+fn main(len: Int, args: Vec&lt;String&gt;) -> Result&lt;(), Error&gt; {
+	match len {
+		(<= 1) => Err(Error::InvalidInput("No input provided1")),
+		2 => (), 
+		_ => Err(Error:InvalidInput("Too many inputs provided!")),
+	}
+	Ok(println!("Hello {:s}", args[1]))
+}</code></pre>
+        <p>
+          As you can see, we included the library struct std::Error, this allows
+          us to use Error as a return value for our verbose error handling.
+        </p>
+        <p>
+          In our match statement, there is something that might be a shock for
+          someone coming from rust, it is automatic function currying! The (<=
+          1) will take the value from len and supply it as the empty value, in
+          this case the left-hand input, and output true or false. A match
+          statement in Cobblr will match on True, and if no function is
+          provided, it will match based on equivalence.
+        </p>
+      </div>
 
-let f = |x: int| { x * x };
-let g = |y: int| y end;</code></pre>
-          <div class="ex-meta">
-            <div class="badge">Functions</div>
-            <p class="small">Parameters: id: Type</p>
-            <button class="copy" data-target="functions">Copy</button>
-          </div>
-        </div>
-      </section>
+      <div class="section">
+        <h2>Step 6: Counting words and Outputting the value</h2>
+        <p>
+          Now that we have our verbose error handling, our input, we have all of
+          the key pieces to finally make our word-count program work! Lets do
+          this using a simple closure function and another library function
+          split.
+        </p>
+        <p>Let's start by adding this line just before our print statement:</p>
+        <pre><code class="language-rust">let wc: int = | input: String | input.split(" ").count() end;</code></pre>
+        <p>
+          This line of code will take our input, in this case it will be
+          args[1]. Then return the count of the Vec&lt;String&gt; that is
+          returned by split. Finally, that value will then be stored in the
+          variable wc;
+        </p>
+        <p>We now have a word count for the user input!</p>
+        <p>
+          Now lets format this output in a user-readable way. Replace the
+          previous print statement with this line:
+        </p>
+        <pre><code class="language-rust">Ok(println!("Word count: {wc:d}"))</code></pre>
+        <p>
+          This showcases one more way that the println function deals with
+          formatting, if a value is supplied on the left of the : colon, it will
+          use that as the value instead of the c-like string formatting. This
+          can also be any arbitrary expression that provides a predictable
+          output. The final program looks like this:
+        </p>
+        <pre><code class="language-rust">use std::Error;
 
-      <section id="modules">
-        <h3>Imports & Paths</h3>
-        <p>Use `use` or `import` with paths.</p>
-        <div class="card">
-          <pre><code>use std::io;
-import my::utils::math;
+fn main(len: Int, args: Vec&lt;String&gt;) -> Result&lt;(), Error&gt; {
+	match len {
+		(<= 1) => Err(Error::InvalidInput("No input provided1")),
+		2 => (), 
+		_ => Err(Error:InvalidInput("Too many inputs provided!")),
+	}
+	let wc: int = | input: String | input.split(" ").count() end;
+	Ok(println!("Word count: {wc:d}"))
+}</code></pre>
+      </div>
 
-std::collections::HashMap</code></pre>
-        </div>
-      </section>
-
-      <section id="examples">
-        <h3>Complete Examples</h3>
-        <p>Short programs demonstrating language features.</p>
-        <div class="card">
-          <pre><code>fn calc(x: int, y: int, op: string) -> int {
-  match op {
-    "add" => { x + y },
-    "sub" => { x - y },
-    _ => { 0 }
-  }
-}
-
-struct Circle { r: float }
-trait Area { fn area() -> float; }
-impl Circle { fn area() -> float { 3.1415 * (r * r) } }</code></pre>
-        </div>
-      </section>
-
-      <section id="cheatsheet">
-        <h3>Cheat Sheet & Quick Reference</h3>
-        <pre><code>*, /, +, -, ++, ==, !=, <, <=, >, >=
-::field, (args), [idx], .field
-_, identifier, literal, Some(...), None, Variant(...)
-int, float, string, bool, &t, &mut t, Custom, Generic<T></code></pre>
-      </section>
-
+      <div class="section">
+        <h2>Step 7: Options for Further Improvements</h2>
+        <p>
+          Now that you’ve created your first Cobblr program, do some
+          experimentation! Some suggestions for further learning are:
+        </p>
+        <ul>
+          <li>
+            If multiple inputs are provided, join them, then count the conjoined
+            word-count
+          </li>
+          <li>Print and do the wc logic in one-line</li>
+          <li>Learn more about Cobblr and the language functions</li>
+          <li>Add some documentation to the language</li>
+          <li>Leave a comment, question, or tutorial on the Cobblr Wiki</li>
+        </ul>
+      </div>
     </main>
-
-    <footer>
-      Built from your Cobblr grammar file.
-    </footer>
-  </div>
-
-  <script>
-    document.querySelectorAll('.copy').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const pre = btn.closest('.example')?.querySelector('pre');
-        if (!pre) return;
-        navigator.clipboard.writeText(pre.innerText).then(() => {
-          const old = btn.innerText;
-          btn.innerText = 'Copied!';
-          setTimeout(() => btn.innerText = old, 1200);
-        });
-      });
-    });
-  </script>
-</body>
+  </body>
 </html>

@@ -1,72 +1,8 @@
-    fn translate(&mut self, dx: f64, dy: f64) {
-        self.x += dx;
-        self.y += dy;
-    }
-
-impl Rectangle {
-    fn area(&self) -> f64 {
-        self.width * self.height
-    }
+fn input() -> Result<String> {
+    let out_str = poll_input(buffsize, sizeof(int) * len);
+    out_str
 }
 
-async fn fetch_data(url: String) -> Result<String, String> {
-    if url == "ok" {
-        Ok("data".into())
-    } else {
-        Err("failed".into())
-    }
-}
-
-fn map_example(nums: Vec<i32>) -> Vec<i32> {
-    nums.map(|n| n * 2)
-}
-
-fn filter_example(nums: Vec<i32>) -> Vec<i32> {
-    nums.filter(|n| n % 2 == 0)
-}
-
-fn main() {
-    let mut counter: i32 = 0;
-    let points: Vec<Point> = vec![
-        Point::new(1.0, 2.0),
-        Point::new(3.0, 4.0),
-    ];
-
-    while counter < 5 {
-        counter+=1;
-    }
-
-    loop {
-        break;
-    }
-
-    for i in 0..10 {
-        counter += i;
-    }
-
-    let response: Result<String, String> = fetch_data("ok".into());
-    match response {
-        Ok(data) => {
-            println("Fetched: " ++ data);
-        },
-        Err(err) => {
-            println("Error: " ++ err);
-        }
-    }
-
-    let maybe_value: Option<i32> = Some(42);
-    match maybe_value {
-        Some(val) => println("Value: " ++ val),
-        None => println("No value"),
-    }
-
-    let numbers: Vec<i32> = vec![1,2,3,4,5];
-    let doubled = map_example(numbers);
-    let evens = filter_example(doubled);
-
-    let mut rect = Rectangle { width: 15.0, height: 25.0 };
-    println("Area: " ++ rect.area());
-
-    let mut p = Point::new(10.0, 20.0);
-    p.translate(5.0, -3.0);
+fn main() -> Result<int> {
+    Ok(0)
 }
