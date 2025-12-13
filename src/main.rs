@@ -1,6 +1,7 @@
 pub mod ast;
 pub mod lexer;
 pub mod tokens;
+pub mod type_checker;
 
 #[macro_use]
 extern crate lalrpop_util;

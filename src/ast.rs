@@ -1,5 +1,7 @@
 #[derive(Debug, Clone)]
-pub struct Program(pub Vec<Decl>);
+pub struct Program {
+    pub decls: Vec<Decl>,
+}
 
 #[derive(Debug, Clone)]
 pub enum Decl {
@@ -16,10 +18,34 @@ pub enum Decl {
     DerivedStruct(Vec<String>, Box<Decl>),
 }
 
+impl Decl {
+    pub fn iter(&self) -> DeclIter<'_> {
+        match self {
+            Decl::Impl(_, decls) | Decl::ImplTrait(_, _, decls) => DeclIter {
+                inner: decls.iter(),
+            },
+
+            _ => DeclIter { inner: [].iter() },
+        }
+    }
+}
+
+pub struct DeclIter<'a> {
+    inner: std::slice::Iter<'a, Decl>,
+}
+
+impl<'a> Iterator for DeclIter<'a> {
+    type Item = &'a Decl;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.next()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct Param {
     pub name: String,
-    pub ty: TypeExpr,
+    pub ty: Option<TypeExpr>,
     pub is_mut: bool,
 }
 
@@ -91,6 +117,7 @@ pub enum Expr {
     Identifier(String),
     Number(Number),
     String(String),
+    BoolLiteral(Bool),
     Reference(Box<Expr>),
     MutReference(Box<Expr>),
 
@@ -170,9 +197,10 @@ pub enum Pattern {
     Some(Box<Pattern>),
     None,
     Variant(String, Box<Pattern>),
+    Expr(Expr),
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TypeExpr {
     Int64,
     Int32,

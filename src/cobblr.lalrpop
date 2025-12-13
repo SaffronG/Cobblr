@@ -19,7 +19,7 @@ use crate::tokens::{Token, LexicalError};
 grammar;
 
 pub Program: ast::Program = {
-    <ds:Declarations> => crate::ast::Program(ds)
+    <ds:Declarations> => crate::ast::Program { decls: ds },
 };
 
 pub Declarations: Vec<ast::Decl> = {
@@ -182,10 +182,17 @@ TypeList: Vec<ast::TypeExpr> = {
 };
 
 Param: ast::Param = {
+    // Immutable Declarations
     <id:"identifier"> ":" <ty:TypeExpr> =>
-        ast::Param { name: id, ty, is_mut: false },
+        ast::Param { name: id, ty: Some(ty), is_mut: false },
+
+    <id:"identifier"> => ast::Param { name: id, ty: None, is_mut: false },
+
+    // Mutable declarations
     "&" "mut" <id:"identifier"> ":" <ty:TypeExpr> =>
-        ast::Param { name: id, ty, is_mut: true }
+        ast::Param { name: id, ty: Some(ty), is_mut: true },
+
+    "&" "mut" <id:"identifier"> => ast::Param { name: id, ty: None, is_mut: true },
 };
 
 pub LetDecl: ast::Decl = {
@@ -250,6 +257,7 @@ MatchArm: ast::MatchArm = {
 };
 
 Pattern: ast::Pattern = {
+    "(" <e:Expr> ")" => ast::Pattern::Expr(e),
     <id:"identifier"> => ast::Pattern::Var(id),
     <i:"int"> => ast::Pattern::Number(ast::Number::Int(i)),
     <f:"float"> => ast::Pattern::Number(ast::Number::Float(f)),
@@ -349,7 +357,6 @@ Atom: ast::Expr = {
         let (name, fields) = s;
         ast::Expr::StructLit(name, fields)
     },
-    //MatchExpr,
     Primary,
 }
 

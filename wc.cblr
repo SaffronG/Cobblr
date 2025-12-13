@@ -1,0 +1,12 @@
+use std::Error;
+
+#derive(Clone, Dbg, Unsafe)
+// The Unsafe keyword lets the compiler know that this should end with an Io::Result return code
+
+fn main(len, args: Vec<String>) -> Result<Error> {
+    match len {
+        (len <= 1) => { Err(Error::InvalidInput("Too few arguments")) },
+        2 => { Ok(println("Word count: {:d}", (args[1].split(" ").count()))) },
+        _ => { Err(Error::InvalidInput("Too many arguments")) },
+    }
+}

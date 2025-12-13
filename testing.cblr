@@ -78,7 +78,7 @@ fn main () -> Result<String>{
     match Arr[0] {
         0 => { print("first item"); },
         1 => { print("second item"); },
-        e => { print("%s", e); },
+        _ => { print("%s", e); },
     }
 
     // Implicit Return
