@@ -42,12 +42,10 @@ fn main() {
 
     match parser.parse(lexer) {
         Ok(program) => {
-            println!("--- Parse Success ---");
-            println!("{:#?}", program);
+            println!("{:#?}", type_checker::type_check(&program));
         }
         Err(err) => {
-            println!("--- Parse Error ---");
-            eprintln!("{:?}", err);
+            eprintln!("ERROR: {:?}", err);
             process::exit(1);
         }
     }

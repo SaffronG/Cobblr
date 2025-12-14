@@ -117,7 +117,6 @@ pub enum Expr {
     Identifier(String),
     Number(Number),
     String(String),
-    BoolLiteral(Bool),
     Reference(Box<Expr>),
     MutReference(Box<Expr>),
 

@@ -1,2 +1,9 @@
-let x = "hello";
-let y = 123;
+fn print(fmt_str: string, value: int) -> int {
+    fmt_str
+}
+
+fn main() {
+    let x: int = 4;
+    let y: int = 123;
+    print("Hello {}", x + y);
+}
