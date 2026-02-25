@@ -66,6 +66,8 @@ pub enum Token {
     Derive,
     #[token("trait")]
     Trait,
+    #[token("as")]
+    As,
     #[token("::")]
     DoubleColon,
     #[token(":")]
@@ -134,14 +136,20 @@ pub enum Token {
     LBrack,
     #[token("]")]
     RBrack,
-    #[regex(r"[0-9]+\.[0-9]+", |lex| lex.slice().parse::<f64>().ok())]
-    Float(f64),
-    #[regex(r"[0-9]+", |lex| lex.slice().parse::<i64>().ok())]
-    Int(i64),
-    #[regex(r#""([^"\\]|\\.)*""#, |lex| {
-        let s = lex.slice();
-        s[1..s.len()-1].to_string()
-    })]
+
+    #[regex(r"[0-9]+\.[0-9]+", |lex| lex.slice().parse::<f64>().expect("Failed to parse type"), priority = 1)]
+    Float64(f64),
+    
+    #[regex(r"[0-9]+\.[0-9]", |lex| lex.slice().parse::<f32>().expect("Failed to parse type"), priority= 2)]
+    Float32(f32),
+
+    #[regex(r"[0-9]+", |lex| lex.slice().parse::<i64>().expect("Failed to parse type") , priority = 1)]
+    Int64(i64),
+
+    #[regex(r"[0-9]+", |lex|  lex.slice().parse::<i32>().expect("Failed to parse type"), priority = 2)]
+    Int32(i32),
+
+    #[regex(r#""([^"\\]|\\.)*""#, |lex| lex.slice().to_string(), priority = 1)]
     Str(String),
     #[regex(r"[a-zA-Z_][a-zA-Z0-9_]*", |lex| lex.slice().to_string())]
     Identifier(String),

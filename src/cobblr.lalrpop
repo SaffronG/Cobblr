@@ -22,6 +22,16 @@ pub Program: ast::Program = {
     <ds:Declarations> => crate::ast::Program { decls: ds },
 };
 
+pub Path: ast::Path = {
+    <id:"identifier"> => ast::Path::Single(id),
+    <p:Path> "::" <id:"identifier"> => ast::Path::Nested(Box::new(p), id)
+};
+
+pub DeriveAttrStruct: ast::Decl = {
+    "#derive" "(" <ids:IdentifierList> ")" <s:StructDecl> =>
+        ast::Decl::DerivedStruct(ids, Box::new(s))
+};
+
 pub Declarations: Vec<ast::Decl> = {
     => vec![],
     <ds:Declarations> <d:Declaration> => {
@@ -45,16 +55,6 @@ pub Declaration: ast::Decl = {
 pub ImportDecl: ast::Decl = {
     "use" <path:Path> ";" => ast::Decl::Import(path),
     "import" <path:Path> ";" => ast::Decl::Import(path)
-};
-
-pub Path: ast::Path = {
-    <id:"identifier"> => ast::Path::Single(id),
-    <p:Path> "::" <id:"identifier"> => ast::Path::Nested(Box::new(p), id)
-};
-
-pub DeriveAttrStruct: ast::Decl = {
-    "#derive" "(" <ids:IdentifierList> ")" <s:StructDecl> =>
-        ast::Decl::DerivedStruct(ids, Box::new(s))
 };
 
 pub IdentifierList: Vec<String> = {
@@ -89,6 +89,11 @@ StructMember: ast::StructMember = {
         ast::StructMember::field_init(id, ty, e)
 };
 
+TraitDecl: ast::Decl = {
+    "trait" <id:"identifier"> "{" <methods:TraitMethods> "}" =>
+        ast::Decl::Trait(id, methods)
+};
+
 EnumDecl: ast::Decl = {
     "enum" <id:"identifier"> "{" <variants:EnumVariants> "}" =>
         ast::Decl::Enum(id, variants)
@@ -106,11 +111,6 @@ EnumVariants: Vec<(String, Option<Vec<TypeExpr>>)> = {
 EnumVariant: (String, Option<Vec<TypeExpr>>) = {
     <id:"identifier"> "," => (id, None),
     <id:"identifier"> "(" <types:TypeList> ")" ","? => (id, Some(types))
-};
-
-TraitDecl: ast::Decl = {
-    "trait" <id:"identifier"> "{" <methods:TraitMethods> "}" =>
-        ast::Decl::Trait(id, methods)
 };
 
 TraitMethods: Vec<ast::TraitMethod> = {
@@ -183,15 +183,11 @@ TypeList: Vec<ast::TypeExpr> = {
 
 Param: ast::Param = {
     // Immutable Declarations
-    <id:"identifier"> ":" <ty:TypeExpr> =>
-        ast::Param { name: id, ty: Some(ty), is_mut: false },
-
+    <id:"identifier"> ":" <ty:TypeExpr> => ast::Param { name: id, ty: Some(ty), is_mut: false },
     <id:"identifier"> => ast::Param { name: id, ty: None, is_mut: false },
-
     // Mutable declarations
-    "&" "mut" <id:"identifier"> ":" <ty:TypeExpr> =>
-        ast::Param { name: id, ty: Some(ty), is_mut: true },
-
+    // Mutable declarations
+    "&" "mut" <id:"identifier"> ":" <ty:TypeExpr> => ast::Param { name: id, ty: Some(ty), is_mut: true },
     "&" "mut" <id:"identifier"> => ast::Param { name: id, ty: None, is_mut: true },
 };
 
@@ -258,13 +254,17 @@ MatchArm: ast::MatchArm = {
 
 Pattern: ast::Pattern = {
     "(" <e:Expr> ")" => ast::Pattern::Expr(e),
-    <id:"identifier"> => ast::Pattern::Var(id),
-    <i:"int"> => ast::Pattern::Number(ast::Number::Int(i)),
-    <f:"float"> => ast::Pattern::Number(ast::Number::Float(f)),
-    "_" => ast::Pattern::Wildcard,
-    "Some" "(" <p:Pattern> ")" => ast::Pattern::Some(Box::new(p)),
+    <p:Path> => ast::Pattern::Path(p),
+    <i:"i32"> => ast::Pattern::Number(ast::Number::Int32(i)),
+    <i:"i64"> => ast::Pattern::Number(ast::Number::Int64(i)),
+    <f:"f32"> => ast::Pattern::Number(ast::Number::Float32(f)),
+    <f:"f64"> => ast::Pattern::Number(ast::Number::Float64(f)),
+    "Some" "(" <p:Pattern> ")" => ast::Pattern::Variant("Some".to_string(), Box::new(p)),
     "None" => ast::Pattern::None,
-    <variant:"identifier"> "(" <p:Pattern> ")" => ast::Pattern::Variant(variant, Box::new(p))
+    "Ok" "(" <p:Pattern> ")" => ast::Pattern::Variant("Ok".to_string(), Box::new(p)),
+    "Err" "(" <p:Pattern> ")" => ast::Pattern::Variant("Err".to_string(), Box::new(p)),
+    // <variant:"identifier"> "(" <p:Pattern> ")" => ast::Pattern::Variant(variant, Box::new(p)),
+    "_" => ast::Pattern::Wildcard,
 };
 
 BoolLit: bool = {
@@ -275,8 +275,10 @@ BoolLit: bool = {
 pub TypeExpr: ast::TypeExpr = {
     "&" <t:TypeExpr> => ast::TypeExpr::Reference(Box::new(t)),
     "&" "mut" <t:TypeExpr> => ast::TypeExpr::MutableReference(Box::new(t)),
-    "int" => ast::TypeExpr::Int64,
-    "float" => ast::TypeExpr::Float64,
+    "i32" => ast::TypeExpr::Int32,
+    "i64" => ast::TypeExpr::Int64,
+    "f32" => ast::TypeExpr::Float32,
+    "f64" => ast::TypeExpr::Float64,
     "string" => ast::TypeExpr::String,
     BoolLit => ast::TypeExpr::Bool,    // or ast::TypeExpr::Bool(true) depending on your AST
     <id:"identifier"> => ast::TypeExpr::Custom(id),
@@ -312,12 +314,10 @@ FieldInit: (String, Expr) = {
 pub Expr: ast::Expr = {
     #[precedence(level="0")]
     Postfix,
-
     #[precedence(level="1")]
     #[assoc(side="left")]
     <l:Expr> "*" <r:Expr> => ast::Expr::Mul(Box::new(l), Box::new(r)),
     <l:Expr> "/" <r:Expr> => ast::Expr::Div(Box::new(l), Box::new(r)),
-
     #[precedence(level="2")]
     #[assoc(side="left")]
     <l:Expr> "+" <r:Expr> => ast::Expr::Add(Box::new(l), Box::new(r)),
@@ -326,7 +326,6 @@ pub Expr: ast::Expr = {
     <l:Expr> "&" <r:Expr> => ast::Expr::And(Box::new(l), Box::new(r)),
     <l:Expr> "|" <r:Expr> => ast::Expr::Or(Box::new(l), Box::new(r)),
     <l:Expr> "^" <r:Expr> => ast::Expr::Xor(Box::new(l), Box::new(r)),
-
     #[precedence(level="3")]
     #[assoc(side="left")]
     <l:Expr> "==" <r:Expr> => ast::Expr::Equal(Box::new(l), Box::new(r)),
@@ -337,7 +336,6 @@ pub Expr: ast::Expr = {
     <l:Expr> "<=" <r:Expr> => ast::Expr::LessEq(Box::new(l), Box::new(r)),
     <l:Expr> ">"  <r:Expr> => ast::Expr::Greater(Box::new(l), Box::new(r)),
     <l:Expr> ">=" <r:Expr> => ast::Expr::GreaterEq(Box::new(l), Box::new(r)),
-
     #[precedence(level="4")] #[assoc(side="left")]
     <l:Expr> "|>" <r:Expr> => ast::Expr::Pipe(Box::new(l), Box::new(r)),
 }
@@ -389,8 +387,10 @@ TupleTypeList: Vec<ast::TypeExpr> = {
 Primary: ast::Expr = {
     "&" <e:Primary> => ast::Expr::Reference(Box::new(e)),
     "&" "mut" <e:Primary> => ast::Expr::MutReference(Box::new(e)),
-    <n:"int"> => ast::Expr::Number(ast::Number::Int(n)),
-    <f:"float"> => ast::Expr::Number(ast::Number::Float(f)),
+    <n:"i32"> => ast::Expr::Number(ast::Number::Int32(n)),
+    <n:"i64"> => ast::Expr::Number(ast::Number::Int64(n)),
+    <f:"f32"> => ast::Expr::Number(ast::Number::Float32(f)),
+    <f:"f64"> => ast::Expr::Number(ast::Number::Float64(f)),
     <s:"string"> => ast::Expr::String(s),
     <id:"identifier"> => ast::Expr::Identifier(id),
     "Some" "(" <e:Expr> ")" => ast::Expr::Variant("Some".to_string(), Some(Box::new(e))),
@@ -467,8 +467,10 @@ extern {
     "}" => Token::RBrace,
     "[" => Token::LBrack,
     "]" => Token::RBrack,
-    "int" => Token::Int(<i64>),
-    "float" => Token::Float(<f64>),
+    "i64" => Token::Int64(<i64>),
+    "i32" => Token::Int32(<i32>),
+    "f64" => Token::Float64(<f64>),
+    "f32" => Token::Float32(<f32>),
     "string" => Token::Str(<String>),
     "identifier" => Token::Identifier(<String>),
     "true" => Token::True,

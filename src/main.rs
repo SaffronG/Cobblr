@@ -42,7 +42,8 @@ fn main() {
 
     match parser.parse(lexer) {
         Ok(program) => {
-            println!("{:#?}", type_checker::type_check(&program));
+            // println!("{:#?}", type_checker::type_check(&program));
+            println!("{:#?}", program);
         }
         Err(err) => {
             eprintln!("ERROR: {:?}", err);

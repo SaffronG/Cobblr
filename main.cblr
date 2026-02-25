@@ -1,8 +1,0 @@
-fn input() -> Result<String> {
-    let out_str = poll_input(buffsize, sizeof(int) * len);
-    out_str
-}
-
-fn main() -> Result<int> {
-    Ok(0)
-}

@@ -4,12 +4,31 @@ fn add(l:i32, r:i32) -> i32 {
     l + r
 }
 
+struct HttpServer {
+    ip: String,
+    port: i32,
+}
+
+impl HttpServer {
+    fn start (self) {
+        print("Server started at {0}:{1}", self.ip, self.port);
+    }
+
+    fn new (ip: string, port: i32) -> HttpServer {
+        HttpServer <- ( ip: ip, port: port )
+    }
+}
+
+fn square(n: i32) -> i32 {
+    n * n
+}
+
 // Enum declaration
 enum Types {
-    String(string),
-    Bool(boolean),
-    i32(int),
-    f32(float),
+    Str(String),
+    Boolean(Bool),
+    Int(i32),
+    Float(f32),
 }
 
 #derive(Debug, Clone)
@@ -33,17 +52,18 @@ impl Point {
         p1
     }
     async fn scale_immut (s: &int, scalar: int) -> Point {
+        // Simply return point and construct it at the same time using implicit return and struct-builder syntax
         Point <- ( x: s.x * scalar, y: s.y * scalar )
     }
 }
 
-fn main () -> Result<String>{
+fn main() -> Result<String>{
     // Struct Init
     let p1 = Point::new(9,10);
 
     // Prepend and Append ++ operator
-    let Arr: Vec<int> = Vec::new();
-    let Arr2: Vec<int> = Vec::new();
+    let Arr: Vec<i32> = Vec::new();
+    let Arr2: Vec<i32> = Vec::new();
     let combo = Arr ++ Arr2;
     Arr::scale_immut(&self, 2);
 
@@ -60,10 +80,10 @@ fn main () -> Result<String>{
     print("(" ++ p1.x ++ "," ++ p1.y ++ ")");
 
     print(p::scale_immut(&self, 5));
-    print("sum: %s sum %s .", p1.x, p1.y);
+    print("sum: {0} sum {1} .", p1.x, p1.y);
 
     // Example using the pipe forward syntax
-    let equation = square |> add(1,2);
+    let equation = add(1,2) |> square;
 
     loop {
         let i = 0;
@@ -75,10 +95,15 @@ fn main () -> Result<String>{
         }
     }
 
+    // Demonstrating pattern matching with various patterns
     match Arr[0] {
         0 => { print("first item"); },
         1 => { print("second item"); },
-        _ => { print("%s", e); },
+        _ => { print("{:#?}", e); },
+        Ok(value) => { value },
+        Some(_) => { Err(Error::InvalidInput("Too many arguments")) },
+        None => { Err(Error::InvalidInput("Invalid input")) },
+        _ => { Err(Error::InvalidInput("Too many arguments")) },
     }
 
     // Implicit Return

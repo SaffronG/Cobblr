@@ -24,7 +24,6 @@ impl Decl {
             Decl::Impl(_, decls) | Decl::ImplTrait(_, _, decls) => DeclIter {
                 inner: decls.iter(),
             },
-
             _ => DeclIter { inner: [].iter() },
         }
     }
@@ -64,7 +63,6 @@ impl StructMember {
             init: None,
         }
     }
-
     pub fn field_init(name: String, ty: TypeExpr, init: Expr) -> Self {
         StructMember {
             name,
@@ -119,48 +117,37 @@ pub enum Expr {
     String(String),
     Reference(Box<Expr>),
     MutReference(Box<Expr>),
-
     Match {
         value: Box<Expr>,
         arms: Vec<MatchArm>,
     },
     Tuple(Vec<Expr>),
-
     // Function calls
     Call(Box<Expr>, Vec<Expr>),
     AssocCall(String, String, Vec<Expr>),
     MethodCall(Box<Expr>, String, Vec<Expr>),
-
     // Struct literal: StructName { field: expr, ... }
     StructLit(String, Vec<(String, Expr)>),
-
     // Closures
     Closure(Vec<Param>, Box<Expr>),
-
     // Enum variants: Some(x) or None
     Variant(String, Option<Box<Expr>>),
-
     // Pipe operator: left |> right
     Pipe(Box<Expr>, Box<Expr>),
-
     // Postfix accessors
     Index(Box<Expr>, Box<Expr>),
     FieldAccess(Box<Expr>, String),
     DotAccess(Box<Expr>, String),
-
     // Binary arithmetic
     Add(Box<Expr>, Box<Expr>),
     Sub(Box<Expr>, Box<Expr>),
     Mul(Box<Expr>, Box<Expr>),
     Div(Box<Expr>, Box<Expr>),
-
     // String concat
     Concat(Box<Expr>, Box<Expr>),
-
     // Logical Operators
     LogicalOr(Box<Expr>, Box<Expr>),
     LogicalAnd(Box<Expr>, Box<Expr>),
-
     // Comparisons
     Equal(Box<Expr>, Box<Expr>),
     NotEqual(Box<Expr>, Box<Expr>),
@@ -168,7 +155,6 @@ pub enum Expr {
     LessEq(Box<Expr>, Box<Expr>),
     Greater(Box<Expr>, Box<Expr>),
     GreaterEq(Box<Expr>, Box<Expr>),
-
     // Bitwise
     Or(Box<Expr>, Box<Expr>),
     And(Box<Expr>, Box<Expr>),
@@ -178,8 +164,10 @@ pub enum Expr {
 
 #[derive(Debug, Clone)]
 pub enum Number {
-    Int(i64),
-    Float(f64),
+    Int64(i64),
+    Int32(i32),
+    Float64(f64),
+    Float32(f32),
 }
 
 #[derive(Debug, Clone)]
@@ -190,13 +178,14 @@ pub struct MatchArm {
 
 #[derive(Debug, Clone)]
 pub enum Pattern {
-    Var(String),
     Number(Number),
     Wildcard,
     Some(Box<Pattern>),
-    None,
+    Path(Path),
     Variant(String, Box<Pattern>),
+    // PartialOp(Box<Expr>, BinaryOp),
     Expr(Expr),
+    None,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

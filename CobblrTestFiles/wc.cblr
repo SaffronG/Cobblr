@@ -1,0 +1,17 @@
+enum Error {
+    InvalidInput(String),
+}
+
+fn process_input(input: String) -> Result<String> {
+    match input.trim() {
+        ("") => { Err(Error::InvalidInput("Input cannot be empty".to_string())) },
+        _ => { Ok(input) },
+    }
+}
+
+fn main(len, args: Vec<String>) -> Result<Error> {
+    match len {
+        (|x| x <= 1 end) => { Err(Error::InvalidInput("Too few arguments")) },
+        2 => { Ok(println("Word count: {:d}", args[1].split(" ").count())) },
+    }
+}
